@@ -1,0 +1,15 @@
+{
+  "hosts": ["tcp://0.0.0.0:2375", "unix:///var/run/docker.sock"],
+  "registry-mirrors": [],
+  "insecure-registries" : ["localhost:32000"],
+{% if use_nvidia %}
+  "default-runtime": "nvidia",
+  "runtimes": {
+    "nvidia": {
+      "path": "/usr/bin/nvidia-container-runtime",
+      "runtimeArgs": []
+    }
+  },
+{% endif %}
+  "debug": false
+}

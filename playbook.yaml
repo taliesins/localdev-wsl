@@ -1,0 +1,14 @@
+- hosts: wsl
+  ### Go here to edit variables ###
+  vars_files:
+    - vars/prerequisite_packages.yml
+    - vars/tool_versions.yml
+    - vars/user_environment.yml
+  ### Comment out roles you don't need ###
+  roles:
+    - packages
+    # - shell
+    - workspace
+    - ops
+  ### Change to your user! ###
+  user: "{{ lookup('ansible.builtin.env', 'USER', default='taliesins') }}"

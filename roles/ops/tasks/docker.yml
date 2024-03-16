@@ -1,0 +1,111 @@
+# Taken from https://kubernetes.io/blog/2019/03/15/kubernetes-setup-using-ansible-and-vagrant/
+---
+- name: Install packages that allow apt to be used over HTTPS
+  become: true
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg-agent
+    - software-properties-common
+
+- name: Add an apt signing key for Docker
+  become: true
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add apt repository for Docker stable version
+  become: true
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+    state: present
+
+# iptables -P FORWARD ACCEPT
+- name: 'Allow docker DEFAULT_FORWARD_POLICY=ACCEPT'
+  become: true
+  ufw: direction=routed default=allow route=yes
+
+# https://github.com/microsoft/WSL/issues/6655
+- name: Use iptables legacy
+  become: true
+  community.general.alternatives:
+    name: iptables 
+    path: /usr/sbin/iptables-legacy
+
+# https://github.com/microsoft/WSL/issues/6655
+- name: Use ip6tables legacy
+  become: true
+  community.general.alternatives:
+    name: ip6tables 
+    path: /usr/sbin/ip6tables-legacy
+
+- name: Install Docker and its dependecies
+  become: true
+  apt: 
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+    - docker-ce 
+    - docker-ce-cli 
+    - containerd.io
+
+- name: docker | configuration directory
+  become: true
+  file:
+    path: /etc/docker
+    state: directory
+    mode: 0755
+
+- name: Check if nvidia device
+  stat:
+    path:  /mnt/c/Windows/System32/lxss/lib/libcuda.so.1.1
+  register: folder_check
+
+- name: Set variable if folder exists
+  set_fact:
+    use_nvidia: "{{ folder_check.stat.exists | default(false) }}"
+
+# https://docs.docker.com/engine/reference/commandline/dockerd/#linux-configuration-file
+- name: docker | configure docker options
+  become: true
+  template:
+    src: etc-docker-daemon-json.j2
+    dest: /etc/docker/daemon.json
+    backup: true
+    mode: 0644
+  notify:
+    - restart docker
+
+# change service file to remove _H options from service file to be able to use daemon.json
+- name: docker | remove options from service
+  become: true
+  ansible.builtin.replace:
+    path:  /usr/lib/systemd/system/docker.service
+    regexp: ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+    replace: ExecStart=/usr/bin/dockerd
+  notify:
+    - reload systemd
+
+- name: docker | enable
+  become: true
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: docker | group members
+  become: true
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  with_items: 
+    - "{{ user }}"
