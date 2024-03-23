@@ -1,31 +1,97 @@
+# code: language=ansible
 ---
-- name: Check if Helm binary exists.
-  stat:
-    path: "{{ helm_bin_path }}"
-  register: helm_check
+- name: install unarchive module dependencies
+  become: true
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+    - tar
+    - unzip
+    - gzip
 
-- name: Check Helm version.
-  command: "{{ helm_bin_path }} version"
+- name: create download directory
+  ansible.builtin.file:
+    state: directory
+    mode: 'u=rwx,go=rx'
+    dest: '{{ helm_download_dir }}'
+
+- name: download sha256sum
+  ansible.builtin.get_url:
+    url: '{{ helm_mirror }}/{{ helm_redis_filename }}.sha256'
+    dest: '{{ helm_download_dir }}/{{ helm_redis_filename }}.sha256'
+    force: false
+    use_proxy: true
+    validate_certs: true
+    mode: 'u=rw,go=r'
+
+- name: read sha256sum
+  ansible.builtin.slurp:
+    src: '{{ helm_download_dir }}/{{ helm_redis_filename }}.sha256'
+  register: helm_sha256sum
+
+- name: download Helm
+  ansible.builtin.get_url:
+    url: '{{ helm_mirror }}/{{ helm_redis_filename }}'
+    dest: '{{ helm_download_dir }}/{{ helm_redis_filename }}'
+    checksum: 'sha256:{{ helm_sha256sum.content | b64decode | trim }}'
+    force: false
+    use_proxy: true
+    validate_certs: true
+    mode: 'u=rw,go=r'
+
+- name: check current version
+  ansible.builtin.command: >-
+    {{ helm_install_dir }}/helm version --client --template
+    {{ "'{{ if .Version }}{{ .Version }}{{ else }}{{ .Client.SemVer }}{{ end }}'" }}
+  register: helm_current_version
   failed_when: false
   changed_when: false
-  register: helm_existing_version
 
-- name: Download helm.
-  unarchive:
-    src: "{{ helm_repo_path }}/helm-{{ helm_version }}-{{ helm_platform }}-{{ helm_arch }}.tar.gz"
-    dest: /tmp
-    remote_src: true
-    mode: 0755
-  register: helm_download
-  when: >
-    not helm_check.stat.exists
-    or helm_version not in helm_existing_version.stdout
+- name: current version
+  ansible.builtin.debug:
+    msg: '{{ helm_current_version.stdout }}'
+  when: helm_current_version.rc == 0
 
-- name: Copy helm binary into place.
-  copy:
-    src: "/tmp/{{ helm_platform }}-{{ helm_arch }}/helm"
-    dest: "{{ helm_bin_path }}"
-    mode: 0755
-    remote_src: true
+- name: remove existing installation
   become: true
-  when: helm_download is changed
+  ansible.builtin.file:
+    path: '{{ helm_install_dir }}'
+    state: absent
+  when:
+    - helm_current_version.rc == 0
+    - helm_current_version.stdout != ('v' + helm_version)
+
+- name: create the Helm installation dir
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: 'u=rwx,go=rx'
+    dest: '{{ helm_install_dir }}'
+
+- name: install Helm
+  become: true
+  ansible.builtin.unarchive:
+    src: '{{ helm_download_dir }}/{{ helm_redis_filename }}'
+    remote_src: true
+    dest: '{{ helm_install_dir }}'
+    extra_opts:
+      - '--strip-components=1'
+    owner: root
+    group: root
+    mode: 'o-w'
+    creates: '{{ helm_install_dir }}/helm'
+
+- name: create helm link
+  become: true
+  ansible.builtin.file:
+    src: '{{ helm_install_dir }}/helm'
+    dest: '/usr/local/bin/helm'
+    state: link
+    owner: root
+    group: root
+    mode: 'u=rwx,go=rx'

@@ -1,0 +1,98 @@
+
+######################################################
+## Kubectl
+######################################################
+
+# "kubectl" version to install
+kubectl_version: "1.29.3"
+
+# Processor architecture "kubectl" should run on
+kubectl_arch: "amd64"  # other possible values: "386","arm64","arm","ppc64le","s390x"
+
+# Operating system on which "kubectl" should run on
+kubectl_os: "linux"  # use "darwin" for MacOS X, "windows" for Windows
+
+# Mirror to download Kubectl from
+kubectl_mirror: "https://storage.googleapis.com/kubernetes-release/release/v{{ kubectl_version }}"
+
+kubectl_redis_filename: "kubernetes-client-{{ kubectl_os }}-{{ kubectl_arch }}.tar.gz"
+
+# Dir where Kubectl should be installed
+kubectl_install_dir: '/usr/local/share/kubectl'
+
+# Directory to store files downloaded for kubectl
+kubectl_download_dir: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}"
+
+######################################################
+## Helm
+######################################################
+
+# Helm version number
+helm_version: '3.14.3'
+
+# The CPU architecture of the Helm executable to install
+helm_architecture: 'amd64'
+
+# Operating system on which "helm" should run on
+helm_os: "linux"  # use "darwin" for MacOS X, "windows" for Windows
+
+# Mirror to download Helm from
+helm_mirror: 'https://get.helm.sh'
+
+helm_redis_filename: "helm-v{{ helm_version }}-{{ helm_os }}-{{ helm_architecture }}.tar.gz"
+
+# Dir where Helm should be installed
+helm_install_dir: '/usr/local/share/helm'
+
+# Directory to store files downloaded for Helm
+helm_download_dir: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}"
+
+######################################################
+## microk8s
+######################################################
+
+microk8s_version: 1.29
+
+microk8s_channel: "{{ microk8s_version }}/stable"
+
+microk8s_ipv4_support: "true"
+microk8s_ipv4_cluster_cidr: "10.154.0.0/16"
+microk8s_ipv4_service_cidr: "10.153.0.0/16"
+microk8s_ipv6_support: "false"
+microk8s_ipv6_cluster_cidr: "fd69:fd69:fd69:154::1/64"
+microk8s_ipv6_service_cidr: "fd69:fd69:fd69:153::1/64"
+
+microk8s_extra_sans : 
+  - "10.152.0.5"
+  - "fe80::215:5dff:feae:6476"
+  - "10.153.0.1"
+  - "fd69:fd69:fd69:153::1"
+
+microk8s_host_access_ip: "10.1.0.5"
+
+microk8s_metallb_ip_range: "10.152.0.193-10.152.0.254"
+
+microk8s_cluster_domain: "cluster.local"
+
+microk8s_cluster_dns: "10.153.0.4"
+
+######################################################
+## k8s - host path provider
+######################################################
+
+k8s_host_path_provider_yaml: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/hostpath-provisioner.yaml"
+
+
+######################################################
+## k8s - coredns
+######################################################
+
+k8s_coredns_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/coredns-overrides.yaml"
+
+k8s_coredns_cluster_name: "k8s"
+k8s_coredns_tld: "lan.talifun.com"
+k8s_coredns_primary_dns_ipv4: "10.153.0.4"
+k8s_coredns_primary_dns_ipv6: "fd69:fd69:fd69:153::4"
+k8s_coredns_external_domain: "{{ k8s_coredns_cluster_name }}.{{ k8s_coredns_tld }}"
+k8s_coredns_internal_domain: "svc.cluster.local"
+k8s_coredns_upstream_dnsserver: "dns://10.1.0.1:53"

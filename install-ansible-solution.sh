@@ -56,3 +56,5 @@ else
     pwd
     git clone https://github.com/taliesins/localdev-wsl
 fi
+
+ansible-galaxy install -r requirements.yml

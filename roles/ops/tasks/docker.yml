@@ -23,7 +23,7 @@
 - name: Add apt repository for Docker stable version
   become: true
   apt_repository:
-    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable
     state: present
 
 # iptables -P FORWARD ACCEPT

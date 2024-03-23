@@ -1,61 +1,97 @@
-# Taken from https://kubernetes.io/blog/2019/03/15/kubernetes-setup-using-ansible-and-vagrant/
+# code: language=ansible
 ---
-- name: Add an apt signing key for Kubernetes
+- name: install unarchive module dependencies
   become: true
-  apt_key:
-    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-    state: present
-
-- name: Add apt repository for Kubernetes
-  become: true
-  apt_repository:
-    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
-    state: present
-    filename: kubernetes.list
-
-- name: Install kubeadm and kubectl 
-  become: true
-  apt: 
+  apt:
     name: "{{ packages }}"
     state: present
     update_cache: yes
   vars:
     packages:
-      - kubelet
-      - kubeadm 
-      - kubectl
+    - tar
+    - unzip
+    - gzip
 
-- name: Check for krew
-  stat: path=/$HOME/.krew
-  register: krew
+- name: create download directory
+  ansible.builtin.file:
+    state: directory
+    mode: 'u=rwx,go=rx'
+    dest: '{{ kubectl_download_dir }}'
 
-- name: Install krew
-  shell: |
-    set -x; cd "$(mktemp -d)" &&
-    OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
-    ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
-    curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/krew.tar.gz" &&
-    tar zxvf krew.tar.gz &&
-    KREW=./krew-"${OS}_${ARCH}" &&
-    "$KREW" install krew
-  when: not krew.stat.exists
+- name: download sha256sum
+  ansible.builtin.get_url:
+    url: '{{ kubectl_mirror }}/{{ kubectl_redis_filename }}.sha256'
+    dest: '{{ kubectl_download_dir }}/{{ kubectl_redis_filename }}.sha256'
+    force: false
+    use_proxy: true
+    validate_certs: true
+    mode: 'u=rw,go=r'
 
-- name: Get installed krew plugins
-  command: "kubectl krew list"
-  register: "krew_plugins"
+- name: read sha256sum
+  ansible.builtin.slurp:
+    src: '{{ kubectl_download_dir }}/{{ kubectl_redis_filename }}.sha256'
+  register: kubectl_sha256sum
 
-- name: Install krew plugins
-  command: "kubectl krew install {{ item }}"
-  when: "item|string not in krew_plugins.stdout_lines"
-  with_items:
-    - cert-manager
-    - ctx
-    - exec-cronjob
-    - get-all
-    - krew
-    - ns
-    - pod-dive
-    - roll
-    - snap
-    - tail
-    - view-utilization
+- name: download Kubectl
+  ansible.builtin.get_url:
+    url: '{{ kubectl_mirror }}/{{ kubectl_redis_filename }}'
+    dest: '{{ kubectl_download_dir }}/{{ kubectl_redis_filename }}'
+    checksum: 'sha256:{{ kubectl_sha256sum.content | b64decode | trim }}'
+    force: false
+    use_proxy: true
+    validate_certs: true
+    mode: 'u=rw,go=r'
+
+- name: check current version
+  ansible.builtin.command: >-
+    {{ kubectl_install_dir }}/kubectl version --client --template
+    {{ "'{{ if .Version }}{{ .Version }}{{ else }}{{ .Client.SemVer }}{{ end }}'" }}
+  register: kubectl_current_version
+  failed_when: false
+  changed_when: false
+
+- name: current version
+  ansible.builtin.debug:
+    msg: '{{ kubectl_current_version.stdout }}'
+  when: kubectl_current_version.rc == 0
+
+- name: remove existing installation
+  become: true
+  ansible.builtin.file:
+    path: '{{ kubectl_install_dir }}'
+    state: absent
+  when:
+    - kubectl_current_version.rc == 0
+    - kubectl_current_version.stdout != ('v' + kubectl_version)
+
+- name: create the Kubectl installation dir
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: 'u=rwx,go=rx'
+    dest: '{{ kubectl_install_dir }}'
+
+- name: install Kubectl
+  become: true
+  ansible.builtin.unarchive:
+    src: '{{ kubectl_download_dir }}/{{ kubectl_redis_filename }}'
+    remote_src: true
+    dest: '{{ kubectl_install_dir }}'
+    extra_opts:
+      - '--strip-components=3'
+    owner: root
+    group: root
+    mode: 'o-w'
+    creates: '{{ kubectl_install_dir }}/kubectl'
+
+- name: create kubectl link
+  become: true
+  ansible.builtin.file:
+    src: '{{ kubectl_install_dir }}/kubectl'
+    dest: '/usr/local/bin/kubectl'
+    state: link
+    owner: root
+    group: root
+    mode: 'u=rwx,go=rx'

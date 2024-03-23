@@ -1,0 +1,11 @@
+- name: Hostpath Provisioner
+  become: true
+  template:
+    src: k8s-hostpath-provisioner-yaml.j2
+    dest: "{{ k8s_coredns_helm_overrides }}"
+    backup: true
+
+- name: Deploy hostpath provisioner
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ k8s_host_path_provider_yaml }}"
