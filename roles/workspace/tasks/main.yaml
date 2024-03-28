@@ -1,3 +1,4 @@
+# code: language=ansible
 ---
 - name: install workspace directory
   file: path='{{ lookup("env", "HOME") }}/{{ repo_directory }}' state=directory

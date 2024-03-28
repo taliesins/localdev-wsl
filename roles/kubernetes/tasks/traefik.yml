@@ -1,0 +1,46 @@
+# code: language=ansible
+---
+- name: Traefik Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  template:
+    src: traefik-overrides-yaml.j2
+    dest: "{{ traefik_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Traefik Dashboard Yaml
+  become: true
+  become_user: '{{ user }}'
+  template:
+    src: traefik-dashboard-yaml.j2
+    dest: "{{ traefik_dashboard_yaml }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add Traefik chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: traefik
+    repo_url: "https://helm.traefik.io/traefik"
+
+- name: Deploy Traefik helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: traefik
+    release_namespace: traefik
+    chart_ref: traefik/traefik
+    chart_version: 26.0.0
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ traefik_helm_overrides }}"
+
+- name: Deploy Traefik Dashboard
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ traefik_dashboard_yaml }}"
+    wait: yes

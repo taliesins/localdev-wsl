@@ -1,3 +1,5 @@
+# code: language=ansible
+---
 
 ######################################################
 ## Kubectl
@@ -75,24 +77,3 @@ microk8s_metallb_ip_range: "10.152.0.193-10.152.0.254"
 microk8s_cluster_domain: "cluster.local"
 
 microk8s_cluster_dns: "10.153.0.4"
-
-######################################################
-## k8s - host path provider
-######################################################
-
-k8s_host_path_provider_yaml: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/hostpath-provisioner.yaml"
-
-
-######################################################
-## k8s - coredns
-######################################################
-
-k8s_coredns_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/coredns-overrides.yaml"
-
-k8s_coredns_cluster_name: "k8s"
-k8s_coredns_tld: "lan.talifun.com"
-k8s_coredns_primary_dns_ipv4: "10.153.0.4"
-k8s_coredns_primary_dns_ipv6: "fd69:fd69:fd69:153::4"
-k8s_coredns_external_domain: "{{ k8s_coredns_cluster_name }}.{{ k8s_coredns_tld }}"
-k8s_coredns_internal_domain: "svc.cluster.local"
-k8s_coredns_upstream_dnsserver: "dns://10.1.0.1:53"

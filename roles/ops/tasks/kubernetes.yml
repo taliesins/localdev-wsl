@@ -12,10 +12,27 @@
     - unzip
     - gzip
 
+- name: install kubernetes dependencies for root
+  become: true
+  pip:
+    name:
+      - pyyaml
+      - kubernetes 
+      - kubernetes-validate
+
+- name: install kubernetes dependencies for user
+  become: true
+  become_user: '{{ user }}'
+  pip:
+    name:
+      - pyyaml
+      - kubernetes 
+      - kubernetes-validate
+
 - name: create download directory
   ansible.builtin.file:
     state: directory
-    mode: 'u=rwx,go=rx'
+    mode: 'u=rwx,g=rx,o=rx'
     dest: '{{ kubectl_download_dir }}'
 
 - name: download sha256sum
@@ -25,7 +42,7 @@
     force: false
     use_proxy: true
     validate_certs: true
-    mode: 'u=rw,go=r'
+    mode: 'u=rw,g=r,o=r'
 
 - name: read sha256sum
   ansible.builtin.slurp:
@@ -40,7 +57,7 @@
     force: false
     use_proxy: true
     validate_certs: true
-    mode: 'u=rw,go=r'
+    mode: 'u=rw,g=r,o=r'
 
 - name: check current version
   ansible.builtin.command: >-
@@ -70,7 +87,7 @@
     state: directory
     owner: root
     group: root
-    mode: 'u=rwx,go=rx'
+    mode: 'u=rwx,g=rx,o=rx'
     dest: '{{ kubectl_install_dir }}'
 
 - name: install Kubectl
@@ -94,4 +111,4 @@
     state: link
     owner: root
     group: root
-    mode: 'u=rwx,go=rx'
+    mode: 'u=rwx,g=rx,o=rx'

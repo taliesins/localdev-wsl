@@ -1,0 +1,8 @@
+# code: language=ansible
+---
+- include_tasks: hostpath-provisioner.yml
+- include_tasks: coredns.yml
+- include_tasks: k8s-gateway.yml
+- include_tasks: nfs-csi.yml
+- include_tasks: smb-csi.yml
+- include_tasks: traefik.yml

@@ -1,0 +1,30 @@
+# code: language=ansible
+---
+- name: CoreDNS Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  template:
+    src: coredns-overrides-yaml.j2
+    dest: "{{ coredns_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add CoreDNS chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: coredns
+    repo_url: "https://coredns.github.io/helm"
+
+- name: Deploy CoreDNS helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: coredns
+    release_namespace: coredns
+    chart_ref: coredns/coredns
+    chart_version: 1.29.0
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ coredns_helm_overrides }}"

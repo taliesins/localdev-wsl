@@ -1,6 +1,6 @@
 service:
-  clusterIP: {{ k8s_coredns_primary_dns_ipv4 }}
-  clusterIPs: [{{ k8s_coredns_primary_dns_ipv4 }}]
+  clusterIP: {{ coredns_primary_dns_ipv4 }}
+  clusterIPs: [{{ coredns_primary_dns_ipv4 }}]
 # Default zone is what Kubernetes recommends:
 # https://kubernetes.io/docs/tasks/administer-cluster/dns-custom-nameservers/#coredns-configmap-options
 servers:
@@ -20,13 +20,13 @@ servers:
   - name: rewrite
     parameters: stop
     configBlock: |-
-      name regex (.*)\.(.*)\.{{ k8s_coredns_external_domain | replace(".", "\.") }}\.$ {1}.{2}.{{ k8s_coredns_internal_domain }}
-      answer name (.*)\.(.*)\.{{ k8s_coredns_internal_domain | replace(".", "\.") }}\.$ {1}.{2}.{{ k8s_coredns_external_domain }}
+      name regex (.*)\.(.*)\.{{ coredns_external_domain | replace(".", "\.") }}\.$ {1}.{2}.{{ coredns_internal_domain }}
+      answer name (.*)\.(.*)\.{{ coredns_internal_domain | replace(".", "\.") }}\.$ {1}.{2}.{{ coredns_external_domain }}
   - name: rewrite
     parameters: stop
     configBlock: |-
-      name regex (.*)\.{{ k8s_coredns_external_domain | replace(".", "\.") }}\.$ {1}.default.{{ k8s_coredns_internal_domain }}
-      answer name (.*)\.default\.{{ k8s_coredns_internal_domain | replace(".", "\.") }}\.$ {1}.{{ k8s_coredns_external_domain }}
+      name regex (.*)\.{{ coredns_external_domain | replace(".", "\.") }}\.$ {1}.default.{{ coredns_internal_domain }}
+      answer name (.*)\.default\.{{ coredns_internal_domain | replace(".", "\.") }}\.$ {1}.{{ coredns_external_domain }}
   # Required to query kubernetes API for data
   - name: kubernetes
     parameters: cluster.local in-addr.arpa ip6.arpa
@@ -39,7 +39,7 @@ servers:
     parameters: 0.0.0.0:9153
   - name: forward
     parameters: |-
-      . {{ k8s_coredns_upstream_dnsserver }}
+      . {{ coredns_upstream_dnsserver }}
   - name: cache
     parameters: 30
   - name: loop

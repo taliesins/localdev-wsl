@@ -1,0 +1,7 @@
+domain: {{ k8s_gateway_domain }}
+secondary: k8s-gateway-secondary.k8s-gateway
+service:
+  type: LoadBalancer
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: {{ k8s_gateway_external_primary_dns_ipv4 }}
+    io.cilium/lb-ipam-ips: {{ k8s_gateway_external_primary_dns_ipv4 }}

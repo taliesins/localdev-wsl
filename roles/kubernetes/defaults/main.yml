@@ -1,0 +1,62 @@
+######################################################
+## Host path provider
+######################################################
+
+host_path_provider_yaml: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/hostpath-provisioner.yaml"
+host_path_provider_pv_dir: /var/snap/microk8s/common/default-storage
+
+######################################################
+## CoreDns
+######################################################
+
+coredns_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/coredns-overrides.yaml"
+
+coredns_cluster_name: "k8s"
+coredns_tld: "lan.talifun.com"
+coredns_primary_dns_ipv4: "10.153.0.4"
+coredns_primary_dns_ipv6: "fd69:fd69:fd69:153::4"
+coredns_external_domain: "{{ coredns_cluster_name }}.{{ coredns_tld }}"
+coredns_internal_domain: "svc.cluster.local"
+coredns_upstream_dnsserver: "dns://10.1.0.1:53"
+
+######################################################
+## K8S Gateway
+######################################################
+
+k8s_gateway_primary_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/external-dns-primary-overrides.yaml"
+k8s_gateway_secondary_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/external-dns-secondary-overrides.yaml"
+
+k8s_gateway_cluster_name: "k8s"
+k8s_gateway_tld: "lan.talifun.com"
+k8s_gateway_domain: "{{ k8s_gateway_cluster_name }}.{{ k8s_gateway_tld }}"
+
+k8s_gateway_external_primary_dns_ipv4: "10.152.0.194"
+k8s_gateway_external_primary_dns_ipv6: "fd69:fd69:fd69:100::194"
+
+k8s_gateway_external_secondary_dns_ipv4: "10.152.0.195"
+k8s_gateway_external_secondary_dns_ipv6: "fd69:fd69:fd69:100::195"
+
+######################################################
+## NFS CSI
+######################################################
+
+nfs_csi_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/nfs-csi-overrides.yaml"
+
+######################################################
+## SMB CSI
+######################################################
+
+smb_csi_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/smb-csi-overrides.yaml"
+
+######################################################
+## Traefik
+######################################################
+
+traefik_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/traefik-overrides.yaml"
+traefik_dashboard_yaml: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/traefik-dashboard.yaml"
+
+traefik_cluster_name: "k8s"
+traefik_tld: "lan.talifun.com"
+
+traefik_ingress_ipv4: "10.152.0.193"
+traefik_ingress_ipv6: "fd69:fd69:fd69:100:193"

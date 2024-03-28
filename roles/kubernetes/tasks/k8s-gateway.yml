@@ -1,0 +1,52 @@
+# code: language=ansible
+---
+- name: K8S Gateway Primary Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  template:
+    src: k8s-gateway-primary-overrides.yaml.j2
+    dest: "{{ k8s_gateway_primary_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: K8S Gateway Secondary Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  template:
+    src: k8s-gateway-secondary-overrides.yaml.j2
+    dest: "{{ k8s_gateway_secondary_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add K8S Gateway chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: k8s-gateway
+    repo_url: "https://ori-edge.github.io/k8s_gateway/"
+
+- name: Deploy K8S Gateway Primary helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: k8s-gateway-primary
+    release_namespace: k8s-gateway-primary
+    chart_ref: k8s-gateway/k8s-gateway
+    chart_version: 2.1.0
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ k8s_gateway_primary_helm_overrides }}"
+
+- name: Deploy K8S Gateway Secondary helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: k8s-gateway-secondary
+    release_namespace: k8s-gateway-secondary
+    chart_ref: k8s-gateway/k8s-gateway
+    chart_version: 2.1.0
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ k8s_gateway_secondary_helm_overrides }}"

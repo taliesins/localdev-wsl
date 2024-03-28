@@ -1,3 +1,4 @@
+# code: language=ansible
 ---
 - name: install zsh and friends
   become: True
@@ -9,7 +10,7 @@
     - zsh
 
 - name: change user shell to zsh
-  become: yes
+  become: true
   become_user: root
   command: chsh -s /bin/zsh {{ user }} 
 
@@ -36,4 +37,3 @@
 - name: Clone powerlevel10k
   command: git clone --depth=1 https://github.com/romkatv/powerlevel10k.git {{ lookup("env", "HOME") }}/.oh-my-zsh/custom/themes/powerlevel10k
   when: not powerlevel10k.stat.exists
-

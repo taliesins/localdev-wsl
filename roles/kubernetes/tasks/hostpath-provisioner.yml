@@ -1,0 +1,17 @@
+# code: language=ansible
+---
+- name: Hostpath Provisioner Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  template:
+    src: hostpath-provisioner-yaml.j2
+    dest: "{{ host_path_provider_yaml }}"
+    mode: 'u=rw,g=r,o=r'
+    
+- name: Deploy hostpath provisioner
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ host_path_provider_yaml }}"
+    wait: yes

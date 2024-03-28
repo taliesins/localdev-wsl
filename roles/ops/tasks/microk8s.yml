@@ -1,10 +1,12 @@
+# code: language=ansible
+---
 - name: microk8s | configure microk8s options
   become: true
   template:
     src: etc-microk8s-yaml.j2
     dest: /etc/microk8s.yaml
     backup: true
-    mode: 0644
+    mode: 'u=rw,g=r,o=r'
 
 - name: Install microk8s
   become: true
@@ -32,36 +34,62 @@
   with_items: 
     - "{{ user }}"
 
-- name: create kube directory
-  become_user: "{{ user }}"
-  ansible.builtin.file:
-    state: directory
-    mode: 'u=rwx,go=rx'
-    dest: '{{ helm_download_dir }}'
-
-- name: Create .kube folder for the user
+- name: Create .kube folder for root
   become: true
-  become_user: '{{ user }}'
-  file:
+  changed_when: false
+  ansible.builtin.file:
+    path: "/home/root/.kube"
+    state: directory
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rwx,g=rwx,o='
+    recurse: true
+
+- name: Create .kube folder for user
+  become: true
+  changed_when: false
+  ansible.builtin.file:
     path: "/home/{{ user }}/.kube"
     state: directory
     owner: '{{ user }}'
     group: '{{ user }}'
-    mode: 0750
+    mode: 'u=rwx,g=rwx,o='
+    recurse: true
 
-- name: create kubectl config
+- name: create kubectl config for root
   become: true
-  changed_when: true
-  shell: microk8s config > /home/{{ user }}/.kube/config
+  changed_when: false
+  shell: |
+    /snap/bin/microk8s config > /home/root/.kube/config
   args:
     executable: /bin/bash
 
-- name: reaffirm permission on files
+- name: create kubectl config for user
   become: true
+  become_user: '{{ user }}'
+  changed_when: false
+  shell: |
+    /snap/bin/microk8s config > /home/{{ user }}/.kube/config
+  args:
+    executable: /bin/bash
+
+- name: set file permissions on ~/.kube/config for root
+  become: true
+  changed_when: false
   file:
-    path: "/home/{{ user }}/.kube"
-    state: directory
+    path: "/home/root/.kube/config"
+    state: file
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=,o='
+
+- name: set file permissions on ~/.kube/config for user
+  become: true
+  changed_when: false
+  file:
+    path: "/home/{{ user }}/.kube/config"
+    state: file
     owner: '{{ user }}'
     group: '{{ user }}'
-    recurse: yes
-    mode: 0750
+    mode: 'u=rw,g=,o='
+

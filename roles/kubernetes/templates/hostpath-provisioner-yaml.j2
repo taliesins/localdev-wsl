@@ -36,13 +36,13 @@ spec:
                   apiVersion: v1
                   fieldPath: spec.nodeName
             - name: PV_DIR
-              value: ${PV_DIR}
+              value: {{ host_path_provider_pv_dir }}
             - name: BUSYBOX_IMAGE
               value: busybox:1.35.0
           resources: {}
           volumeMounts:
             - name: pv-volume
-              mountPath: ${PV_DIR}
+              mountPath: {{ host_path_provider_pv_dir }}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           imagePullPolicy: IfNotPresent

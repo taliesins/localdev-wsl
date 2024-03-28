@@ -1,3 +1,4 @@
+# code: language=ansible
 ---
 # TODO: Refactor all of this lol
 - name: Clone dotfiles, unless present

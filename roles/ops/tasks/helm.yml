@@ -15,7 +15,7 @@
 - name: create download directory
   ansible.builtin.file:
     state: directory
-    mode: 'u=rwx,go=rx'
+    mode: 'u=rwx,g=rx,o=rx'
     dest: '{{ helm_download_dir }}'
 
 - name: download sha256sum
@@ -25,7 +25,7 @@
     force: false
     use_proxy: true
     validate_certs: true
-    mode: 'u=rw,go=r'
+    mode: 'u=rw,g=r,o=r'
 
 - name: read sha256sum
   ansible.builtin.slurp:
@@ -40,7 +40,7 @@
     force: false
     use_proxy: true
     validate_certs: true
-    mode: 'u=rw,go=r'
+    mode: 'u=rw,g=r,o=r'
 
 - name: check current version
   ansible.builtin.command: >-
@@ -70,7 +70,7 @@
     state: directory
     owner: root
     group: root
-    mode: 'u=rwx,go=rx'
+    mode: 'u=rwx,g=rx,o=rx'
     dest: '{{ helm_install_dir }}'
 
 - name: install Helm
@@ -94,4 +94,17 @@
     state: link
     owner: root
     group: root
-    mode: 'u=rwx,go=rx'
+    mode: 'u=rwx,o=rx,o=rx'
+
+- name: Install Helm Plugin Helm-Diff for root
+  become: true
+  kubernetes.core.helm_plugin:
+    plugin_path: "https://github.com/databus23/helm-diff"
+    state: present
+
+- name: Install Helm Plugin Helm-Diff for user
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_plugin:
+    plugin_path: "https://github.com/databus23/helm-diff"
+    state: present

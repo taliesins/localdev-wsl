@@ -1,4 +1,4 @@
 #!/bin/bash
 
 cd $HOME/localdev-wsl
-ansible-playbook -K playbook.yaml
+ansible-playbook -K playbook.yaml --tags "kubernetes"

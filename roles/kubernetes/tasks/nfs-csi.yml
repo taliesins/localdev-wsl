@@ -1,0 +1,30 @@
+# code: language=ansible
+---
+- name: NFS CSI Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  template:
+    src: nfs-csi-overrides-yaml.j2
+    dest: "{{ nfs_csi_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add NFS CSI chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: nfs-csi
+    repo_url: "https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts"
+
+- name: Deploy NFS CSI helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: nfs-csi
+    release_namespace: nfs-csi
+    chart_ref: nfs-csi/csi-driver-nfs
+    chart_version: v4.6.0
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ nfs_csi_helm_overrides }}"
