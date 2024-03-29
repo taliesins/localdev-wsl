@@ -1,8 +1,8 @@
 # code: language=ansible
 ---
-- name: install unarchive module dependencies
+- name: Install unarchive module dependencies
   become: true
-  apt:
+  ansible.builtin.apt:
     name: "{{ packages }}"
     state: present
     update_cache: yes
@@ -12,13 +12,13 @@
     - unzip
     - gzip
 
-- name: create download directory
+- name: Create download directory
   ansible.builtin.file:
     state: directory
     mode: 'u=rwx,g=rx,o=rx'
     dest: '{{ helm_download_dir }}'
 
-- name: download sha256sum
+- name: Download sha256sum
   ansible.builtin.get_url:
     url: '{{ helm_mirror }}/{{ helm_redis_filename }}.sha256'
     dest: '{{ helm_download_dir }}/{{ helm_redis_filename }}.sha256'
@@ -27,12 +27,12 @@
     validate_certs: true
     mode: 'u=rw,g=r,o=r'
 
-- name: read sha256sum
+- name: Read sha256sum
   ansible.builtin.slurp:
     src: '{{ helm_download_dir }}/{{ helm_redis_filename }}.sha256'
   register: helm_sha256sum
 
-- name: download Helm
+- name: Download Helm
   ansible.builtin.get_url:
     url: '{{ helm_mirror }}/{{ helm_redis_filename }}'
     dest: '{{ helm_download_dir }}/{{ helm_redis_filename }}'
@@ -42,7 +42,7 @@
     validate_certs: true
     mode: 'u=rw,g=r,o=r'
 
-- name: check current version
+- name: Check current version
   ansible.builtin.command: >-
     {{ helm_install_dir }}/helm version --client --template
     {{ "'{{ if .Version }}{{ .Version }}{{ else }}{{ .Client.SemVer }}{{ end }}'" }}
@@ -50,12 +50,12 @@
   failed_when: false
   changed_when: false
 
-- name: current version
+- name: Current version
   ansible.builtin.debug:
     msg: '{{ helm_current_version.stdout }}'
   when: helm_current_version.rc == 0
 
-- name: remove existing installation
+- name: Remove existing installation
   become: true
   ansible.builtin.file:
     path: '{{ helm_install_dir }}'
@@ -64,7 +64,7 @@
     - helm_current_version.rc == 0
     - helm_current_version.stdout != ('v' + helm_version)
 
-- name: create the Helm installation dir
+- name: Create the Helm installation dir
   become: true
   ansible.builtin.file:
     state: directory
@@ -73,7 +73,7 @@
     mode: 'u=rwx,g=rx,o=rx'
     dest: '{{ helm_install_dir }}'
 
-- name: install Helm
+- name: Install Helm
   become: true
   ansible.builtin.unarchive:
     src: '{{ helm_download_dir }}/{{ helm_redis_filename }}'
@@ -86,7 +86,7 @@
     mode: 'o-w'
     creates: '{{ helm_install_dir }}/helm'
 
-- name: create helm link
+- name: Create helm link
   become: true
   ansible.builtin.file:
     src: '{{ helm_install_dir }}/helm'

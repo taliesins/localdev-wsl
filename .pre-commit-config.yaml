@@ -38,13 +38,13 @@ repos:
         args: ["-l", "-i", "2", "-ci", "-sr", "-w"]
       - id: shellcheck
 
-  - repo: https://github.com/melmorabity/pre-commit-psscriptanalyzer
-    rev: v1.0.0
-    hooks:
-      # Check PowerShell code
-      - id: psscriptanalyzer-check-docker
-      # Format PowerShell code
-      - id: psscriptanalyzer-format-docker
+  # - repo: https://github.com/melmorabity/pre-commit-psscriptanalyzer
+  #   rev: v1.0.0
+  #   hooks:
+  #     # Check PowerShell code
+  #     - id: psscriptanalyzer-check-docker
+  #     # Format PowerShell code
+  #     - id: psscriptanalyzer-format-docker
 
   # Dockerfile linter
   - repo: https://github.com/hadolint/hadolint

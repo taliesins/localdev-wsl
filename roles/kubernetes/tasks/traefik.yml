@@ -3,7 +3,7 @@
 - name: Traefik Helm Overrides
   become: true
   become_user: '{{ user }}'
-  template:
+  ansible.builtin.template:
     src: traefik-overrides-yaml.j2
     dest: "{{ traefik_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
@@ -11,7 +11,7 @@
 - name: Traefik Dashboard Yaml
   become: true
   become_user: '{{ user }}'
-  template:
+  ansible.builtin.template:
     src: traefik-dashboard-yaml.j2
     dest: "{{ traefik_dashboard_yaml }}"
     mode: 'u=rw,g=r,o=r'

@@ -3,7 +3,7 @@
 - name: NFS CSI Helm Overrides
   become: true
   become_user: '{{ user }}'
-  template:
+  ansible.builtin.template:
     src: nfs-csi-overrides-yaml.j2
     dest: "{{ nfs_csi_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'

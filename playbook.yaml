@@ -1,4 +1,5 @@
-- hosts: wsl
+- name: Bootstrap WSL
+  hosts: wsl
   ### Go here to edit variables ###
   vars_files:
     - vars/prerequisite_packages.yml

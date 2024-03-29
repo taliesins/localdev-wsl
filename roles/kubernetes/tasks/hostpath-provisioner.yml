@@ -3,11 +3,11 @@
 - name: Hostpath Provisioner Helm Overrides
   become: true
   become_user: '{{ user }}'
-  template:
+  ansible.builtin.template:
     src: hostpath-provisioner-yaml.j2
     dest: "{{ host_path_provider_yaml }}"
     mode: 'u=rw,g=r,o=r'
-    
+
 - name: Deploy hostpath provisioner
   become: true
   become_user: '{{ user }}'

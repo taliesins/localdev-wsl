@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -e
 sudo add-apt-repository --yes --update ppa:ansible/ansible
 sudo apt update
 sudo apt upgrade -y
