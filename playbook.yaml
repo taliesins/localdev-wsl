@@ -6,10 +6,10 @@
     - vars/user_environment.yml
   ### Comment out roles you don't need ###
   roles:
-    - {role: 'packages', tags: 'packages'}
-    #- {role: 'shell', tags: 'shell'}
-    - {role: 'workspace', tags: 'workspace'}
-    - {role: 'ops', tags: 'ops'}
+    # - {role: 'packages', tags: 'packages'}
+    # - {role: 'shell', tags: 'shell'}
+    # - {role: 'workspace', tags: 'workspace'}
+    # - {role: 'ops', tags: 'ops'}
     - {role: 'kubernetes', tags: 'kubernetes'}
 
   ### Change to your user! ###

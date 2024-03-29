@@ -26,7 +26,7 @@
 - name: Add apt repository for Docker stable version
   become: true
   apt_repository:
-    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release | lower }} stable
     state: present
 
 # iptables -P FORWARD ACCEPT
@@ -38,26 +38,26 @@
 - name: Use iptables legacy
   become: true
   community.general.alternatives:
-    name: iptables 
+    name: iptables
     path: /usr/sbin/iptables-legacy
 
 # https://github.com/microsoft/WSL/issues/6655
 - name: Use ip6tables legacy
   become: true
   community.general.alternatives:
-    name: ip6tables 
+    name: ip6tables
     path: /usr/sbin/ip6tables-legacy
 
 - name: Install Docker and its dependecies
   become: true
-  apt: 
+  apt:
     name: "{{ packages }}"
     state: present
     update_cache: yes
   vars:
     packages:
-    - docker-ce 
-    - docker-ce-cli 
+    - docker-ce
+    - docker-ce-cli
     - containerd.io
 
 - name: docker | configuration directory
@@ -66,7 +66,7 @@
     path: /etc/docker
     state: directory
     mode: 'u=rwx,g=rx,o=rx'
-    
+
 - name: Check if nvidia device
   stat:
     path:  /mnt/c/Windows/System32/lxss/lib/libcuda.so.1.1
@@ -109,5 +109,5 @@
     name: "{{ item }}"
     groups: docker
     append: true
-  with_items: 
+  with_items:
     - "{{ user }}"

@@ -1,0 +1,12 @@
+---
+exclude_paths:
+  - .devcontainer/
+  - .git/
+  - .profile/
+  - .config/
+
+skip_list:
+  - experimental
+  - 'name[template]' # Jinja templates should only be at the end of ‘name’.
+  - '503'
+  - 'jinja'
