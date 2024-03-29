@@ -1,17 +1,17 @@
 # code: language=ansible
 ---
-- name: update package list
+- name: Update package list
   become: true
-  package:
+  ansible.builtin.package:
     update_cache: yes
 
-- name: upgrade all packages
+- name: Upgrade all packages
   become: true
-  package:
+  ansible.builtin.package:
     name: "*"
     state: latest
 
 - name: Install packages
   become: true
-  apt:
+  ansible.builtin.apt:
     name: "{{ prerequisite_packages }}"

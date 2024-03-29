@@ -1,0 +1,28 @@
+# code: language=ansible
+---
+- name: Add an apt signing key for nvidia-docker
+  become: true
+  ansible.builtin.get_url:
+    url: https://nvidia.github.io/nvidia-docker/gpgkey
+    dest: /usr/share/keyrings/nvidia-docker.asc
+    mode: 'u=rw,g=r,o=r'
+    force: true
+  when: use_nvidia|default(false)|bool
+
+- name: Add an apt source for libnvidia-container
+  become: true
+  ansible.builtin.template:
+    src: libnvidia-container-list.j2
+    dest: "/etc/apt/sources.list.d/libnvidia-container.list"
+    mode: 'u=rw,g=r,o=r'
+  when: use_nvidia|default(false)|bool
+
+- name: Install Nvidia Container Toolkit
+  become: true
+  ansible.builtin.apt:
+    name: "nvidia-container-toolkit"
+    state: "present"
+    update_cache: yes
+  notify:
+    - Restart docker
+  when: use_nvidia|default(false)|bool

@@ -3,16 +3,16 @@
 - name: K8S Gateway Primary Helm Overrides
   become: true
   become_user: '{{ user }}'
-  template:
-    src: k8s-gateway-primary-overrides.yaml.j2
+  ansible.builtin.template:
+    src: k8s-gateway-primary-overrides.yml.j2
     dest: "{{ k8s_gateway_primary_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
 
 - name: K8S Gateway Secondary Helm Overrides
   become: true
   become_user: '{{ user }}'
-  template:
-    src: k8s-gateway-secondary-overrides.yaml.j2
+  ansible.builtin.template:
+    src: k8s-gateway-secondary-overrides.yml.j2
     dest: "{{ k8s_gateway_secondary_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
 

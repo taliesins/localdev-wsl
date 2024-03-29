@@ -1,8 +1,11 @@
 # code: language=ansible
 ---
-- name: install workspace directory
-  file: path='{{ lookup("env", "HOME") }}/{{ repo_directory }}' state=directory
+- name: Install workspace directory
+  ansible.builtin.file:
+    path: '{{ lookup("env", "HOME") }}/{{ repo_directory }}'
+    state: directory
+    mode: 'u=rwx,g=rwx,o='
 
-- name: install workspace repos
-  action: shell cd {{ lookup("env", "HOME") }}/{{ repo_directory}} && (test -d `basename {{ item }} .git` || git clone {{ item }})
+- name: Install workspace repos
+  ansible.builtin.shell: cd {{ lookup("env", "HOME") }}/{{ repo_directory}} && (test -d `basename {{ item }} .git` || git clone {{ item }})
   with_items: "{{ repos }}"

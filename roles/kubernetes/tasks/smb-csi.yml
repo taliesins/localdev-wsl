@@ -1,0 +1,30 @@
+# code: language=ansible
+---
+- name: SMB CSI Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: smb-csi-overrides-yml.j2
+    dest: "{{ smb_csi_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add SMB CSI chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: smb-csi
+    repo_url: "https://raw.githubusercontent.com/kubernetes-csi/csi-driver-smb/master/charts"
+
+- name: Deploy SMB CSI helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: smb-csi
+    release_namespace: smb-csi
+    chart_ref: smb-csi/csi-driver-smb
+    chart_version: v1.13.0
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ smb_csi_helm_overrides }}"

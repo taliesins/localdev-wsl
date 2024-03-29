@@ -1,11 +1,11 @@
 # code: language=ansible
 ---
 # Handlers for docker
-- name: reload systemd
+- name: Reload systemd
   become: true
-  command: systemctl daemon-reload
+  ansible.builtin.command: systemctl daemon-reload
 
-- name: restart docker
+- name: Restart docker
   become: true
   ansible.builtin.service:
     name: docker

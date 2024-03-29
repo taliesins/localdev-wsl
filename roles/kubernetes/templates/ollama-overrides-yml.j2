@@ -1,0 +1,22 @@
+# Ollama parameters
+ollama:
+  gpu:
+    # -- Enable GPU integration
+    enabled: {{ ollama_gpu_enabled }}
+
+    # -- Specify the number of GPU
+    number: {{ ollama_number_of_gpus }}
+
+  # -- Default model to serve, if not set, no model will be served at container startup
+  defaultModel: "{{ ollama_default_model }}"
+
+# -- Specify runtime class
+runtimeClassName: "nvidia"
+
+ingress:
+  enabled: true
+  hosts:
+  - host: ollama.ollama.{{ ollama_cluster_name }}.{{ ollama_tld }}
+    paths:
+      - path: /
+        pathType: Prefix

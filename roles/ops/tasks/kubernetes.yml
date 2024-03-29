@@ -1,8 +1,8 @@
 # code: language=ansible
 ---
-- name: install unarchive module dependencies
+- name: Install unarchive module dependencies
   become: true
-  apt:
+  ansible.builtin.apt:
     name: "{{ packages }}"
     state: present
     update_cache: yes
@@ -12,30 +12,30 @@
     - unzip
     - gzip
 
-- name: install kubernetes dependencies for root
+- name: Install kubernetes dependencies for root
   become: true
-  pip:
+  ansible.builtin.pip:
     name:
       - pyyaml
-      - kubernetes 
+      - kubernetes
       - kubernetes-validate
 
-- name: install kubernetes dependencies for user
+- name: Install kubernetes dependencies for user
   become: true
   become_user: '{{ user }}'
-  pip:
+  ansible.builtin.pip:
     name:
       - pyyaml
-      - kubernetes 
+      - kubernetes
       - kubernetes-validate
 
-- name: create download directory
+- name: Create download directory
   ansible.builtin.file:
     state: directory
     mode: 'u=rwx,g=rx,o=rx'
     dest: '{{ kubectl_download_dir }}'
 
-- name: download sha256sum
+- name: Download sha256sum
   ansible.builtin.get_url:
     url: '{{ kubectl_mirror }}/{{ kubectl_redis_filename }}.sha256'
     dest: '{{ kubectl_download_dir }}/{{ kubectl_redis_filename }}.sha256'
@@ -44,12 +44,12 @@
     validate_certs: true
     mode: 'u=rw,g=r,o=r'
 
-- name: read sha256sum
+- name: Read sha256sum
   ansible.builtin.slurp:
     src: '{{ kubectl_download_dir }}/{{ kubectl_redis_filename }}.sha256'
   register: kubectl_sha256sum
 
-- name: download Kubectl
+- name: Download Kubectl
   ansible.builtin.get_url:
     url: '{{ kubectl_mirror }}/{{ kubectl_redis_filename }}'
     dest: '{{ kubectl_download_dir }}/{{ kubectl_redis_filename }}'
@@ -59,7 +59,7 @@
     validate_certs: true
     mode: 'u=rw,g=r,o=r'
 
-- name: check current version
+- name: Check current version
   ansible.builtin.command: >-
     {{ kubectl_install_dir }}/kubectl version --client --template
     {{ "'{{ if .Version }}{{ .Version }}{{ else }}{{ .Client.SemVer }}{{ end }}'" }}
@@ -67,12 +67,12 @@
   failed_when: false
   changed_when: false
 
-- name: current version
+- name: Current version
   ansible.builtin.debug:
     msg: '{{ kubectl_current_version.stdout }}'
   when: kubectl_current_version.rc == 0
 
-- name: remove existing installation
+- name: Remove existing installation
   become: true
   ansible.builtin.file:
     path: '{{ kubectl_install_dir }}'
@@ -81,7 +81,7 @@
     - kubectl_current_version.rc == 0
     - kubectl_current_version.stdout != ('v' + kubectl_version)
 
-- name: create the Kubectl installation dir
+- name: Create the Kubectl installation dir
   become: true
   ansible.builtin.file:
     state: directory
@@ -90,7 +90,7 @@
     mode: 'u=rwx,g=rx,o=rx'
     dest: '{{ kubectl_install_dir }}'
 
-- name: install Kubectl
+- name: Install Kubectl
   become: true
   ansible.builtin.unarchive:
     src: '{{ kubectl_download_dir }}/{{ kubectl_redis_filename }}'
@@ -103,7 +103,7 @@
     mode: 'o-w'
     creates: '{{ kubectl_install_dir }}/kubectl'
 
-- name: create kubectl link
+- name: Create kubectl link
   become: true
   ansible.builtin.file:
     src: '{{ kubectl_install_dir }}/kubectl'

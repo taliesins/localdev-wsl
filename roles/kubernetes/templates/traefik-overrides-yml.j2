@@ -1,0 +1,113 @@
+service:
+  externalTrafficPolicy: Cluster
+  type: LoadBalancer
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: {{ traefik_ingress_ipv4 }}
+    io.cilium/lb-ipam-ips: {{ traefik_ingress_ipv4 }}
+rbac:
+  enabled: true
+ports:
+  traefik:
+    port: 9000
+  web:
+    port: 80
+    exposedPort: 80
+  websecure:
+    port: 443
+    exposedPort: 443
+    tls:
+      enabled: true
+  metrics:
+    port: 9100
+
+#  pop3:
+#    port: 110
+  pop3s:
+    port: 995
+    tls:
+      enabled: true
+
+#  imap:
+#    port: 143
+  imaps:
+    port: 993
+    tls:
+      enabled: true
+#  imap-auth:
+#    port: 10143
+
+  smtp:
+    port: 25
+#  smtps:
+#    port: 465
+#    tls:
+#      enabled: true
+  smtpd:
+    port: 587
+#  smtp-auth:
+#    port: 10025
+#  auth:
+#    port: 8000
+
+#tlsOptions:
+#  default:
+#    minVersion: VersionTLS12
+#    cipherSuites:
+##        - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+##        - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+##        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+##        - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+#    - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+#    - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+#    - TLS_AES_256_GCM_SHA384
+#    - TLS_CHACHA20_POLY1305_SHA256
+#    curvePreferences:
+#    - CurveP521
+#    - CurveP384
+#    sniStrict: true
+#    preferServerCipherSuites: true
+additionalArguments:
+  - "--entryPoints.web.forwardedHeaders.trustedIPs=127.0.0.1/32,10.1.0.1/32,10.1.0.5/32,10.152.0.0/16"
+  - "--entryPoints.websecure.forwardedHeaders.trustedIPs=127.0.0.1/32,10.1.0.1/32,10.1.0.5/32,10.152.0.0/16"
+# - "--entryPoints.pop3s.forwardedHeaders.trustedIPs=127.0.0.1/32,10.1.0.1/32,10.1.0.5/32,10.152.0.0/16"
+# - "--entryPoints.imaps.forwardedHeaders.trustedIPs=127.0.0.1/32,10.1.0.1/32,10.1.0.5/32,10.152.0.0/16"
+# - "--entryPoints.smtp.forwardedHeaders.trustedIPs=127.0.0.1/32,10.1.0.1/32,10.1.0.5/32,10.152.0.0/16"
+# - "--entryPoints.smtpd.forwardedHeaders.trustedIPs=127.0.0.1/32,10.1.0.1/32,10.1.0.5/32,10.152.0.0/16"
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+ingressRoute:
+  dashboard:
+    enabled: false
+podAnnotations:
+  prometheus.io/port: "8082"
+  prometheus.io/scrape: "true"
+providers:
+  kubernetesIngress:
+#   allowExternalNameServices: true
+    publishedService:
+      enabled: true
+  kubernetesCRD:
+    enabled: true
+    allowCrossNamespace: true
+#   allowExternalNameServices: true
+
+priorityClassName: "system-cluster-critical"
+tolerations:
+- key: "CriticalAddonsOnly"
+  operator: "Exists"
+- key: "node-role.kubernetes.io/control-plane"
+  operator: "Exists"
+  effect: "NoSchedule"
+- key: "node-role.kubernetes.io/master"
+  operator: "Exists"
+  effect: "NoSchedule"
+hostNetwork: false
+securityContext:
+  capabilities:
+    drop: [ALL]
+    add: [NET_BIND_SERVICE]
+  readOnlyRootFilesystem: true
+  runAsGroup: 0
+  runAsNonRoot: false
+  runAsUser: 0

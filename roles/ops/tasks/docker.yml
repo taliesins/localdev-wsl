@@ -3,7 +3,7 @@
 ---
 - name: Install packages that allow apt to be used over HTTPS
   become: true
-  apt:
+  ansible.builtin.apt:
     name: "{{ packages }}"
     state: present
     update_cache: yes
@@ -19,23 +19,23 @@
   become: true
   ansible.builtin.get_url:
     url: https://download.docker.com/linux/ubuntu/gpg
-    dest: /etc/apt/keyrings/docker.gpg
-    mode: '0644'
+    dest: /usr/share/keyrings/docker.asc
+    mode: 'u=rw,g=r,o=r'
     force: true
 
 - name: Add apt repository for Docker stable version
   become: true
-  apt_repository:
-    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release | lower }} stable
+  ansible.builtin.apt_repository:
+    repo: deb [arch=amd64 signed-by=/usr/share/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release | lower }} stable
     state: present
 
 # iptables -P FORWARD ACCEPT
-- name: 'Allow docker DEFAULT_FORWARD_POLICY=ACCEPT'
+- name: Set IpTables DEFAULT_FORWARD_POLICY to ACCEPT
   become: true
-  ufw: direction=routed default=allow route=yes
+  community.general.ufw: direction=routed default=allow route=yes
 
 # https://github.com/microsoft/WSL/issues/6655
-- name: Use iptables legacy
+- name: Use IpTables legacy
   become: true
   community.general.alternatives:
     name: iptables
@@ -50,7 +50,7 @@
 
 - name: Install Docker and its dependecies
   become: true
-  apt:
+  ansible.builtin.apt:
     name: "{{ packages }}"
     state: present
     update_cache: yes
@@ -60,50 +60,50 @@
     - docker-ce-cli
     - containerd.io
 
-- name: docker | configuration directory
+- name: Create Docker configuration directory
   become: true
-  file:
+  ansible.builtin.file:
     path: /etc/docker
     state: directory
     mode: 'u=rwx,g=rx,o=rx'
 
 - name: Check if nvidia device
-  stat:
+  ansible.builtin.stat:
     path:  /mnt/c/Windows/System32/lxss/lib/libcuda.so.1.1
   register: folder_check
 
 - name: Set variable if folder exists
-  set_fact:
+  ansible.builtin.set_fact:
     use_nvidia: "{{ folder_check.stat.exists | default(false) }}"
 
 # https://docs.docker.com/engine/reference/commandline/dockerd/#linux-configuration-file
-- name: docker | configure docker options
+- name: Set Docker daemon.json
   become: true
-  template:
+  ansible.builtin.template:
     src: etc-docker-daemon-json.j2
     dest: /etc/docker/daemon.json
     mode: 'u=rw,g=r,o=r'
   notify:
-    - restart docker
+    - Restart docker
 
 # change service file to remove _H options from service file to be able to use daemon.json
-- name: docker | remove options from service
+- name: Update Docker service to remove options
   become: true
   ansible.builtin.replace:
     path:  /usr/lib/systemd/system/docker.service
     regexp: ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
     replace: ExecStart=/usr/bin/dockerd --containerd=/run/containerd/containerd.sock
   notify:
-    - reload systemd
+    - Reload systemd
 
-- name: docker | enable
+- name: Start Docker service
   become: true
   ansible.builtin.service:
     name: docker
     state: started
     enabled: true
 
-- name: docker | group members
+- name: Set Docker group members
   become: true
   ansible.builtin.user:
     name: "{{ item }}"

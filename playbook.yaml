@@ -1,4 +1,5 @@
-- hosts: wsl
+- name: Bootstrap WSL
+  hosts: wsl
   ### Go here to edit variables ###
   vars_files:
     - vars/prerequisite_packages.yml
@@ -6,10 +7,10 @@
     - vars/user_environment.yml
   ### Comment out roles you don't need ###
   roles:
-    # - {role: 'packages', tags: 'packages'}
+    - {role: 'packages', tags: 'packages'}
     # - {role: 'shell', tags: 'shell'}
     # - {role: 'workspace', tags: 'workspace'}
-    # - {role: 'ops', tags: 'ops'}
+    - {role: 'ops', tags: 'ops'}
     - {role: 'kubernetes', tags: 'kubernetes'}
 
   ### Change to your user! ###

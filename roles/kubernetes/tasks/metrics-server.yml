@@ -1,0 +1,30 @@
+# code: language=ansible
+---
+- name: Metrics Server Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: metrics-server-overrides-yml.j2
+    dest: "{{ metrics_server_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add Metrics Server chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: metrics-server
+    repo_url: "https://kubernetes-sigs.github.io/metrics-server/"
+
+- name: Deploy Metrics Server helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: metrics-server
+    release_namespace: metrics-server
+    chart_ref: metrics-server/metrics-server
+    chart_version: v3.11.0
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ metrics_server_helm_overrides }}"

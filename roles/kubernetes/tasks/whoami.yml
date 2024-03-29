@@ -1,0 +1,30 @@
+# code: language=ansible
+---
+- name: WhoAmI Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: whoami-overrides-yml.j2
+    dest: "{{ whoami_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add WhoAmI chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: whoami
+    repo_url: "https://cowboysysop.github.io/charts/"
+
+- name: Deploy WhoAmI helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: whoami
+    release_namespace: whoami
+    chart_ref: whoami/whoami
+    chart_version: whoami-5.1.0
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ whoami_helm_overrides }}"

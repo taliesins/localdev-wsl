@@ -1,0 +1,10 @@
+service:
+  type: LoadBalancer
+  loadBalancerIP: {{ whoami_load_balancer_ip }}
+
+ingress:
+  enabled: true
+  hosts:
+  - host: whoami.whoami.{{ whoami_cluster_name }}.{{ whoami_tld }}
+    paths:
+      - /

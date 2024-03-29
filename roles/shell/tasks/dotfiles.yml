@@ -2,10 +2,10 @@
 ---
 # TODO: Refactor all of this lol
 - name: Clone dotfiles, unless present
-  shell: cd && (test -d `basename git@github.com:{{ dotfiles_repo }}.git .git` || git clone git@github.com:{{ dotfiles_repo }}.git dotfiles)
+  ansible.builtin.shell: cd && (test -d `basename git@github.com:{{ dotfiles_repo }}.git .git` || git clone git@github.com:{{ dotfiles_repo }}.git dotfiles)
 
 - name: Pull latest dotfiles
-  shell: cd {{ lookup("env", "HOME") }}/dotfiles && git checkout {{ dotfiles_branch }} && git pull
+  ansible.builtin.shell: cd {{ lookup("env", "HOME") }}/dotfiles && git checkout {{ dotfiles_branch }} && git pull
 
 - name: Install dotfiles
-  shell: cd {{ lookup("env", "HOME") }}/dotfiles && {{ dotfiles_command }}
+  ansible.builtin.shell: cd {{ lookup("env", "HOME") }}/dotfiles && {{ dotfiles_command }}

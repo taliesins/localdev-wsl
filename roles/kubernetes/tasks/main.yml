@@ -1,8 +1,16 @@
 # code: language=ansible
 ---
-- include_tasks: hostpath-provisioner.yml
-- include_tasks: coredns.yml
-- include_tasks: k8s-gateway.yml
-- include_tasks: nfs-csi.yml
-- include_tasks: smb-csi.yml
-- include_tasks: traefik.yml
+- name: Hostpath Provisioner
+  ansible.builtin.include_tasks: hostpath-provisioner.yml
+- name: Core DNS
+  ansible.builtin.include_tasks: coredns.yml
+- name: K8S Gateway
+  ansible.builtin.include_tasks: k8s-gateway.yml
+- name: NFS CSI
+  ansible.builtin.include_tasks: nfs-csi.yml
+- name: SMB CSI
+  ansible.builtin.include_tasks: smb-csi.yml
+- name: Traefik
+  ansible.builtin.include_tasks: traefik.yml
+- name: Cert Manager
+  ansible.builtin.include_tasks: cert-manager.yml

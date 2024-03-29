@@ -3,8 +3,8 @@
 - name: CoreDNS Helm Overrides
   become: true
   become_user: '{{ user }}'
-  template:
-    src: coredns-overrides-yaml.j2
+  ansible.builtin.template:
+    src: coredns-overrides-yml.j2
     dest: "{{ coredns_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
 

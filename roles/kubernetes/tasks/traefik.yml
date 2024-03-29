@@ -3,17 +3,17 @@
 - name: Traefik Helm Overrides
   become: true
   become_user: '{{ user }}'
-  template:
-    src: traefik-overrides-yaml.j2
+  ansible.builtin.template:
+    src: traefik-overrides-yml.j2
     dest: "{{ traefik_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
 
-- name: Traefik Dashboard Yaml
+- name: Traefik Dashboard Yml
   become: true
   become_user: '{{ user }}'
-  template:
-    src: traefik-dashboard-yaml.j2
-    dest: "{{ traefik_dashboard_yaml }}"
+  ansible.builtin.template:
+    src: traefik-dashboard-yml.j2
+    dest: "{{ traefik_dashboard_yml }}"
     mode: 'u=rw,g=r,o=r'
 
 - name: Add Traefik chart repo
@@ -41,6 +41,7 @@
   become: true
   become_user: '{{ user }}'
   kubernetes.core.k8s:
+    namespace: traefik
     state: present
-    src: "{{ traefik_dashboard_yaml }}"
+    src: "{{ traefik_dashboard_yml }}"
     wait: yes

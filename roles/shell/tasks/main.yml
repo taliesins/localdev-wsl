@@ -1,4 +1,6 @@
 # code: language=ansible
 ---
-- include_tasks: zsh.yml
-- include_tasks: dotfiles.yml
+- name: Zsh
+  ansible.builtin.include_tasks: zsh.yml
+- name: DotFiles
+  ansible.builtin.include_tasks: dotfiles.yml

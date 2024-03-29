@@ -49,7 +49,7 @@ $kernelVersion = '6.8.0'
 $wslPath = 'c:\data\wsl2'
 $customKernelPath = "$($wslPath)\bzImage-x86_64"
 $url = "https://github.com/taliesins/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-$($kernelVersion)/bzImage-x86_64"
-New-Item -Path $wslPath -ItemType Directory -Force 
+New-Item -Path $wslPath -ItemType Directory -Force
 $webClient = New-Object System.Net.WebClient
 $webClient.DownloadFile($url, $customKernelPath)
 $webClient.Dispose()
@@ -59,13 +59,13 @@ $RegistryPath='HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss'
 $NatNetwork=Get-RegistryItemValue -KeyPath $RegistryPath -ItemName 'NatNetwork'
 if (!$NatNetwork) {
     $NatNetwork='10.152.0.0/16'
-    New-ItemProperty -Path $RegistryPath -Name 'NatNetwork' -Value $NatNetwork -PropertyType String -Force 
+    New-ItemProperty -Path $RegistryPath -Name 'NatNetwork' -Value $NatNetwork -PropertyType String -Force
 }
 
 $NatGatewayIpAddress=Get-RegistryItemValue -KeyPath $RegistryPath -ItemName 'NatGatewayIpAddress'
 if (!$NatGatewayIpAddress) {
     $NatGatewayIpAddress='10.152.0.1'
-    New-ItemProperty -Path $RegistryPath -Name 'NatGatewayIpAddress' -Value $NatGatewayIpAddress -PropertyType String -Force 
+    New-ItemProperty -Path $RegistryPath -Name 'NatGatewayIpAddress' -Value $NatGatewayIpAddress -PropertyType String -Force
 }
 
 $RegistryPath='HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss'
@@ -98,7 +98,7 @@ processors=$processors
 # Specify a custom Linux kernel to use with your installed distros. The default kernel used can be found at https://github.com/microsoft/WSL2-Linux-Kernel
 kernel=$($customKernelPath.Replace("\","\\"))
 "@
-Set-Content -Path $wslConfigPath -Value $wslConfig 
+Set-Content -Path $wslConfigPath -Value $wslConfig
 
 #Fix nvidia
 $nvidiaLibPath="$env:windir\System32\lxss\lib"

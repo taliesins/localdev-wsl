@@ -1,0 +1,30 @@
+# code: language=ansible
+---
+- name: Ollama Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: ollama-overrides-yml.j2
+    dest: "{{ ollama_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add Ollama chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: ollama
+    repo_url: "https://otwld.github.io/ollama-helm/"
+
+- name: Deploy Ollama helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: ollama
+    release_namespace: ollama
+    chart_ref: ollama/ollama
+    chart_version: ollama-0.21.0
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ ollama_helm_overrides }}"

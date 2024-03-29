@@ -1,0 +1,25 @@
+# code: language=ansible
+---
+- name: Check if nvidia device
+  ansible.builtin.stat:
+    path:  /mnt/c/Windows/System32/lxss/lib/libcuda.so.1.1
+  register: folder_check
+
+- name: Set variable if folder exists
+  ansible.builtin.set_fact:
+    use_nvidia: "{{ folder_check.stat.exists | default(false) }}"
+
+- name: Add CUDA keyring
+  become: true
+  ansible.builtin.apt:
+    deb: "{{ cuda_toolkit_keyring_url }}"
+    state: present
+  when: use_nvidia|default(false)|bool
+
+- name: Install Cuda Toolkit
+  become: true
+  ansible.builtin.apt:
+    name: "cuda-toolkit-12-3"
+    state: "present"
+    update_cache: yes
+  when: use_nvidia|default(false)|bool

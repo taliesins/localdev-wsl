@@ -3,15 +3,16 @@
 - name: Hostpath Provisioner Helm Overrides
   become: true
   become_user: '{{ user }}'
-  template:
-    src: hostpath-provisioner-yaml.j2
-    dest: "{{ host_path_provider_yaml }}"
+  ansible.builtin.template:
+    src: hostpath-provisioner-yml.j2
+    dest: "{{ host_path_provider_yml }}"
     mode: 'u=rw,g=r,o=r'
-    
+
 - name: Deploy hostpath provisioner
   become: true
   become_user: '{{ user }}'
   kubernetes.core.k8s:
+    #namespace: kube-system
     state: present
-    src: "{{ host_path_provider_yaml }}"
+    src: "{{ host_path_provider_yml }}"
     wait: yes

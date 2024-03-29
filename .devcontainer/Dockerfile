@@ -8,17 +8,17 @@ WORKDIR /config
 
 #Get Docker CLI
 #For latest version see: https://pkgs.org/download/docker-ce-cli
-#ARG DOCKER_CLI_VERSION=5:20.10.21~3-0~ubuntu-focal
+ARG DOCKER_CLI_VERSION=5:26.0.0-1~ubuntu.22.04~jammy
 #For latest version see: https://pkgs.org/download/containerd.io
-#ARG CONTAINERD_VERSION=1.6.10-1
+ARG CONTAINERD_VERSION=1.6.28-2
 
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
     && echo \
     "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-    jammy stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null \
+    jammy stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
     && apt update \
     #&& apt-cache policy docker-ce-cli containerd.io \
-    && apt-get install -y docker-ce-cli containerd.io \
+    && apt-get install -y --no-install-recommends docker-ce-cli=${DOCKER_CLI_VERSION} containerd.io=${CONTAINERD_VERSION} \
     && apt-get -q -y clean \
     && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/* rm -rf /tmp/*;
 
@@ -38,7 +38,7 @@ RUN curl -sSL https://packages.microsoft.com/config/debian/11/packages-microsoft
     && dpkg -i packages-microsoft-prod.deb \
     && rm packages-microsoft-prod.deb \
     && apt update \
-    && apt-get install -y powershell=${POWERSHELL_VERSION} \
+    && apt-get install -y --no-install-recommends powershell=${POWERSHELL_VERSION} \
     && apt-get -q -y clean \
     && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/* rm -rf /tmp/*;
 
@@ -53,10 +53,9 @@ RUN curl -sSL https://github.com/koalaman/shellcheck/releases/download/v${SHELLC
     && tar xf shellcheck.tar.xz \
     && mv shellcheck-v${SHELLCHECK_VERSION}/shellcheck /usr/bin/ \
     && chmod +x /usr/bin/shellcheck \
-    && rm * -rf
+    && rm ./* -rf
 
 # Get hadolint
 ARG HADOLINT_VERSION=2.12.0
 RUN curl -sSL https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VERSION}/hadolint-Linux-x86_64 -o /usr/bin/hadolint \
     && chmod +x /usr/bin/hadolint
-
