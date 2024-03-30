@@ -1,0 +1,91 @@
+# code: language=ansible
+---
+- name: Install unarchive module dependencies
+  become: true
+  ansible.builtin.apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+    - tar
+    - unzip
+    - gzip
+
+- name: Create download directory
+  ansible.builtin.file:
+    state: directory
+    mode: 'u=rwx,g=rx,o=rx'
+    dest: '{{ cilium_cli_download_dir }}'
+
+- name: Download sha256sum
+  ansible.builtin.get_url:
+    url: '{{ cilium_cli_mirror }}/{{ cilium_cli_redis_filename }}.sha256sum'
+    dest: '{{ cilium_cli_download_dir }}/{{ cilium_cli_redis_filename }}.sha256sum'
+    force: false
+    validate_certs: true
+    mode: 'u=rw,g=r,o=r'
+
+- name: Read sha256sum
+  ansible.builtin.slurp:
+    src: '{{ cilium_cli_download_dir }}/{{ cilium_cli_redis_filename }}.sha256sum'
+  register: cilium_cli_sha256sum
+
+- name: Download Cilium
+  ansible.builtin.get_url:
+    url: '{{ cilium_cli_mirror }}/{{ cilium_cli_redis_filename }}'
+    dest: '{{ cilium_cli_download_dir }}/{{ cilium_cli_redis_filename }}'
+    checksum: "sha256:{{ (cilium_cli_sha256sum.content | b64decode).split(' ')[0] | trim }}"
+    force: false
+    validate_certs: true
+    mode: 'u=rw,g=r,o=r'
+
+- name: Check current version
+  ansible.builtin.command: >-
+    {{ cilium_cli_install_dir }}/cilium version --client | head -n 1 | grep -o '{{ cilium_cli_version }}'
+  register: cilium_cli_current_version
+  failed_when: false
+  changed_when: false
+
+- name: Current version
+  ansible.builtin.debug:
+    msg: '{{ cilium_cli_current_version.stdout }}'
+  when: cilium_cli_current_version.rc == 0
+
+- name: Remove existing installation
+  become: true
+  ansible.builtin.file:
+    path: '{{ cilium_cli_install_dir }}'
+    state: absent
+  when:
+    - cilium_cli_current_version.rc == 0
+    - cilium_cli_current_version.stdout != ('v' + cilium_cli_version)
+
+- name: Create the Cilium installation dir
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: 'u=rwx,g=rx,o=rx'
+    dest: '{{ cilium_cli_install_dir }}'
+
+- name: Install Cilium
+  become: true
+  ansible.builtin.unarchive:
+    src: '{{ cilium_cli_download_dir }}/{{ cilium_cli_redis_filename }}'
+    dest: '{{ cilium_cli_install_dir }}'
+    owner: root
+    group: root
+    mode: 'o-w'
+    creates: '{{ cilium_cli_install_dir }}/cilium'
+
+- name: Create cilium link
+  become: true
+  ansible.builtin.file:
+    src: '{{ cilium_cli_install_dir }}/cilium'
+    dest: '/usr/local/bin/cilium'
+    state: link
+    owner: root
+    group: root
+    mode: 'u=rwx,o=rx,o=rx'

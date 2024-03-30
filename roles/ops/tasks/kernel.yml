@@ -1,0 +1,139 @@
+# code: language=ansible
+---
+- name: Install unarchive module dependencies
+  become: true
+  ansible.builtin.apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+    - tar
+    - unzip
+    - gzip
+
+- name: Create download directory
+  ansible.builtin.file:
+    state: directory
+    mode: 'u=rwx,g=rx,o=rx'
+    dest: '{{ kernel_download_dir }}'
+
+- name: Download modules sha256sum
+  ansible.builtin.get_url:
+    url: '{{ kernel_mirror }}/{{ kernel_modules_redis_filename }}.sha256'
+    dest: '{{ kernel_download_dir }}/{{ kernel_modules_redis_filename }}.sha256'
+    force: false
+    validate_certs: true
+    mode: 'u=rw,g=r,o=r'
+    
+- name: Download optional sha256sum
+  ansible.builtin.get_url:
+    url: '{{ kernel_mirror }}/{{ kernel_optional_redis_filename }}.sha256'
+    dest: '{{ kernel_download_dir }}/{{ kernel_optional_redis_filename }}.sha256'
+    force: false
+    validate_certs: true
+    mode: 'u=rw,g=r,o=r'
+
+- name: Read modules sha256sum
+  ansible.builtin.slurp:
+    src: '{{ kernel_download_dir }}/{{ kernel_modules_redis_filename }}.sha256'
+  register: kernel_modules_sha256sum
+
+- name: Read optional sha256sum
+  ansible.builtin.slurp:
+    src: '{{ kernel_download_dir }}/{{ kernel_optional_redis_filename }}.sha256'
+  register: kernel_optional_sha256sum
+
+- name: Download Kernel Modules
+  ansible.builtin.get_url:
+    url: '{{ kernel_mirror }}/{{ kernel_modules_redis_filename }}.tar.gz'
+    dest: '{{ kernel_download_dir }}/{{ kernel_modules_redis_filename }}.tar.gz'
+    checksum: "sha256:{{ (kernel_modules_sha256sum.content | b64decode).split(' ')[0] | trim }}"
+    force: false
+    validate_certs: true
+    mode: 'u=rw,g=r,o=r'
+
+- name: Download Kernel Options
+  ansible.builtin.get_url:
+    url: '{{ kernel_mirror }}/{{ kernel_optional_redis_filename }}.tar.gz'
+    dest: '{{ kernel_download_dir }}/{{ kernel_optional_redis_filename }}.tar.gz'
+    checksum: "sha256:{{ (kernel_optional_sha256sum.content | b64decode).split(' ')[0] | trim }}"
+    force: false
+    validate_certs: true
+    mode: 'u=rw,g=r,o=r'
+
+- name: Extract Kernel Modules
+  become: true
+  ansible.builtin.unarchive:
+    src: '{{ kernel_download_dir }}/{{ kernel_modules_redis_filename }}.tar.gz'
+    dest: '{{ kernel_download_dir }}'
+    owner: root
+    group: root
+    mode: 'o-w'
+    creates: '{{ kernel_download_dir }}/bzImage-{{ kernel_arch }}-modules_install'
+
+- name: Extract Options Modules
+  become: true
+  ansible.builtin.unarchive:
+    src: '{{ kernel_download_dir }}/{{ kernel_optional_redis_filename }}.tar.gz'
+    dest: '{{ kernel_download_dir }}'
+    owner: root
+    group: root
+    mode: 'o-w'
+    creates: '{{ kernel_download_dir }}/bzImage-{{ kernel_arch }}-optional_install'
+
+- name: Extract Kernel Modules
+  become: true
+  ansible.builtin.shell: |
+    ./modules-install.sh
+    touch run_once
+  args:
+    executable: /bin/bash
+    chdir: "{{ kernel_download_dir }}/bzImage-{{ kernel_arch }}-modules_install"
+    creates: "{{ kernel_download_dir }}/bzImage-{{ kernel_arch }}-modules_install/run_once"
+
+- name: Extract Kernel Options
+  become: true
+  ansible.builtin.shell: |
+    ./optionals-install.sh
+    touch run_once
+  args:
+    executable: /bin/bash
+    chdir: "{{ kernel_download_dir }}/bzImage-{{ kernel_arch }}-optional_install"
+    creates: "{{ kernel_download_dir }}/bzImage-{{ kernel_arch }}-optional_install/run_once"
+
+- name: Load network kernel modules
+  become: true
+  ansible.builtin.template:
+    src: etc-modules-load-d-network-conf.j2
+    dest: /etc/modules-load.d/network.conf
+    mode: 'u=rw,g=r,o=r'
+
+- name: Load storage kernel modules
+  become: true
+  ansible.builtin.template:
+    src: etc-modules-load-d-storage-conf.j2
+    dest: /etc/modules-load.d/storage.conf
+    mode: 'u=rw,g=r,o=r'
+
+- name: Load storage kernel modules
+  become: true
+  ansible.builtin.template:
+    src: systemd-modules-load-service.j2
+    dest: /lib/systemd/system/systemd-modules-load.service
+    mode: 'u=rw,g=r,o=r'
+  register: systemd_modules_load_service
+
+- name: Reload the systemD daemon
+  become: true
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  when: systemd_modules_load_service.changed
+
+- name: Restart systemd
+  become: true
+  ansible.builtin.systemd_service:
+    state: restarted
+    daemon_reload: true
+    name: systemd-modules-load
+  when: systemd_modules_load_service.changed

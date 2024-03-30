@@ -4,7 +4,7 @@
   become: true
   ansible.builtin.template:
     src: etc-microk8s-yml.j2
-    dest: /etc/microk8s.yml
+    dest: /etc/microk8s.yaml
     backup: true
     mode: 'u=rw,g=r,o=r'
 
@@ -16,14 +16,20 @@
     classic: true
     channel: "{{ microk8s_channel }}"
 
+- name: Start microk8s
+  become: true
+  ansible.builtin.command: |
+    microk8s start
+  changed_when: false
+
 - name: Wait for microk8s to be ready
   become: true
   ansible.builtin.command: |
     microk8s status --wait-ready
   changed_when: false
-  register: mk8sstatusout
+  register: microk8s_wait_for_ready_status_out
   failed_when:
-      - mk8sstatusout.rc > 0
+      - microk8s_wait_for_ready_status_out.rc > 0
 
 - name: Set microk8s group members
   become: true
@@ -33,6 +39,11 @@
     append: true
   with_items:
     - "{{ user }}"
+  register: add_to_microk8s_group_result
+
+- name: Include reset connection tasks
+  ansible.builtin.include_tasks: reset-connection.yml
+  when: add_to_microk8s_group_result.changed == true
 
 - name: Create .kube folder for root
   become: true
@@ -66,9 +77,9 @@
 
 - name: Create kubectl config for user
   become: true
-  become_user: '{{ user }}'
   ansible.builtin.shell: |
     /snap/bin/microk8s config > /home/{{ user }}/.kube/config
+    chown {{ user }}:{{ user }} /home/{{ user }}/.kube/config
   args:
     executable: /bin/bash
     creates: /home/{{ user }}/.kube/config
@@ -92,3 +103,77 @@
     owner: '{{ user }}'
     group: '{{ user }}'
     mode: 'u=rw,g=,o='
+
+- name: Check if nvidia device
+  ansible.builtin.stat:
+    path:  /mnt/c/Windows/System32/lxss/lib/libcuda.so.1.1
+  register: folder_check
+
+- name: Set variable if folder exists
+  ansible.builtin.set_fact:
+    use_nvidia: "{{ folder_check.stat.exists | default(false) }}"
+
+- name: Use nvidia runtime as default runtime
+  become: true
+  ansible.builtin.replace:
+    path: /var/snap/microk8s/current/args/containerd-template.toml
+    regexp: 'default_runtime_name = "\${RUNTIME}"'
+    replace: 'default_runtime_name = "nvidia"'
+  when: use_nvidia|default(false)|bool
+  register: changed_default_runtime_name
+
+- name: Rename nvidia-container-runtime to nvidia
+  become: true
+  ansible.builtin.replace:
+    path: /var/snap/microk8s/current/args/containerd-template.toml
+    regexp: 'runtimes\.nvidia-container-runtime'
+    replace: 'runtimes.nvidia'
+  when: use_nvidia|default(false)|bool
+
+- name: Stop microk8s
+  become: true
+  ansible.builtin.command: |
+    microk8s stop
+  changed_when: false
+  register: microk8s_stop_status_out
+  failed_when:
+    - microk8s_stop_status_out.rc > 0
+  when: changed_default_runtime_name.changed
+  
+- name: Start microk8s
+  become: true
+  ansible.builtin.command: |
+    microk8s start
+  changed_when: false
+  register: microk8s_start_status_out
+  failed_when:
+    - microk8s_start_status_out.rc > 0
+  when: changed_default_runtime_name.changed
+
+- name: Wait for microk8s to be ready
+  become: true
+  ansible.builtin.command: |
+    microk8s status --wait-ready
+  register: microk8s_wait_for_ready_status_out
+  failed_when:
+      - microk8s_wait_for_ready_status_out.rc > 0
+  when: changed_default_runtime_name.changed
+
+- name: Kubernetes NVidia Test Yml
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: kubernetes-nvidia-test-yml.j2
+    dest: "{{ microk8s_kubernetes_nvidia_test_yml }}"
+    mode: 'u=rw,g=r,o=r'
+  when: use_nvidia|default(false)|bool
+
+- name: Check NVidia can be reached from Kubernetes
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.k8s:
+    namespace: default
+    state: present
+    src: "{{ microk8s_kubernetes_nvidia_test_yml }}"
+    wait: yes
+  when: use_nvidia|default(false)|bool

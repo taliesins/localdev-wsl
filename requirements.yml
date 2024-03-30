@@ -1,4 +1,7 @@
 collections:
+  - name: community.docker
+    version: 3.8.1
+    type: galaxy
   - name: kubernetes.core
     version: 3.0.1
     type: galaxy

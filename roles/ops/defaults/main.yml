@@ -2,6 +2,23 @@
 ---
 
 ######################################################
+## Custom Kernel
+######################################################
+
+kernel_version: "6.8.0"
+kernel_arch: "x86_64"
+kernel_mirror: "https://github.com/taliesins/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-{{ kernel_version }}"
+kernel_modules_redis_filename: "bzImage-{{ kernel_arch }}-modules_install"
+kernel_optional_redis_filename: "bzImage-{{ kernel_arch }}-optional_install"
+kernel_download_dir: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}"
+
+######################################################
+## Docker
+######################################################
+
+docker_nvidia_test_image: "nvcr.io/nvidia/cuda:12.3.1-base-ubuntu22.04"
+
+######################################################
 ## Kubectl
 ######################################################
 
@@ -50,6 +67,30 @@ helm_install_dir: '/usr/local/share/helm'
 helm_download_dir: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}"
 
 ######################################################
+## Cilium CLI
+######################################################
+
+# Cilium version number
+cilium_cli_version: '0.16.4'
+
+# The CPU architecture of the Cilium executable to install
+cilium_cli_architecture: 'amd64'
+
+# Operating system on which "cilium" should run on
+cilium_cli_os: "linux"  # use "darwin" for MacOS X, "windows" for Windows
+
+# Mirror to download Cilium from
+cilium_cli_mirror: 'https://github.com/cilium/cilium-cli/releases/download/v{{ cilium_cli_version }}'
+
+cilium_cli_redis_filename: "cilium-{{ cilium_cli_os }}-{{ cilium_cli_architecture }}.tar.gz"
+
+# Dir where Cilium should be installed
+cilium_cli_install_dir: '/usr/local/share/cilium'
+
+# Directory to store files downloaded for Cilium
+cilium_cli_download_dir: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}"
+
+######################################################
 ## microk8s
 ######################################################
 
@@ -78,8 +119,18 @@ microk8s_cluster_domain: "cluster.local"
 
 microk8s_cluster_dns: "10.153.0.4"
 
+microk8s_kubernetes_nvidia_test_image: "nvidia/cuda:12.3.1-base-ubuntu22.04"
+
+microk8s_kubernetes_nvidia_test_yml: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/kubernetes-nvidia-test.yml"
+
 ######################################################
 ## Cuda
 ######################################################
 
 cuda_toolkit_keyring_url: "https://developer.download.nvidia.com/compute/cuda/repos/wsl-ubuntu/x86_64/cuda-keyring_1.1-1_all.deb"
+
+######################################################
+## MetalLB - Fix
+######################################################
+
+metallb_fix_yml: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/metallb-fix.yml"

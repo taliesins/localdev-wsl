@@ -1,0 +1,12 @@
+# code: language=ansible
+---
+- name: Mount BPF
+  become: true
+  ansible.posix.mount:
+    src: bpf
+    path: /sys/fs/bpf
+    fstype: bpf
+    opts: rw,nosuid,nodev,noexec,relatime,mode=700
+    boot: true
+    state: mounted
+

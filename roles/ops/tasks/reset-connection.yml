@@ -1,0 +1,17 @@
+# code: language=ansible
+---
+- name: Reset ssh connection
+  become: true
+  ansible.builtin.meta: reset_connection
+
+# - name: Reset ssh connection to allow user changes to affect 'current login user'
+#   become: true
+#   shell: sleep 1; pkill -u {{ ansible_ssh_user }} sshd
+#   async: 5
+#   poll: 1
+
+# - name: Reset ssh connection
+#   local_action:
+#     module: file
+#     path: "{{ control_path_dir }}"
+#     state: absent

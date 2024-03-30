@@ -1,7 +1,8 @@
-# Taken from https://kubernetes.io/blog/2019/03/15/kubernetes-setup-using-ansible-and-vagrant/
 # code: language=ansible
 ---
-- name: Install packages that allow apt to be used over HTTPS
+# Taken from https://kubernetes.io/blog/2019/03/15/kubernetes-setup-using-ansible-and-vagrant/
+
+- name: Install packages that are needed by docker
   become: true
   ansible.builtin.apt:
     name: "{{ packages }}"
@@ -14,6 +15,13 @@
     - curl
     - gnupg-agent
     - software-properties-common
+    - iptables-persistent
+
+- name: Install pip packages that are needed by docker
+  become: true
+  ansible.builtin.pip:
+    name:
+      - docker
 
 - name: Add an apt signing key for Docker
   become: true
@@ -29,11 +37,6 @@
     repo: deb [arch=amd64 signed-by=/usr/share/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release | lower }} stable
     state: present
 
-# iptables -P FORWARD ACCEPT
-- name: Set IpTables DEFAULT_FORWARD_POLICY to ACCEPT
-  become: true
-  community.general.ufw: direction=routed default=allow route=yes
-
 # https://github.com/microsoft/WSL/issues/6655
 - name: Use IpTables legacy
   become: true
@@ -47,6 +50,34 @@
   community.general.alternatives:
     name: ip6tables
     path: /usr/sbin/ip6tables-legacy
+
+- name: Set IpTables DEFAULT_FORWARD_POLICY to ACCEPT
+  become: true
+  ansible.builtin.iptables:
+    chain: FORWARD
+    policy: ACCEPT
+    ip_version: ipv4
+
+- name: Set Ip6Tables DEFAULT_FORWARD_POLICY to ACCEPT
+  become: true
+  ansible.builtin.iptables:
+    chain: FORWARD
+    policy: ACCEPT
+    ip_version: ipv6
+
+# - name: Set IpTables DEFAULT_FORWARD_POLICY to ACCEPT
+#   become: true
+#   ansible.builtin.shell: |
+#     iptables -P FORWARD ACCEPT
+#   args:
+#     executable: /bin/bash
+
+# - name: Set Ip6Tables DEFAULT_FORWARD_POLICY to ACCEPT
+#   become: true
+#   ansible.builtin.shell: |
+#     ip6tables -P FORWARD ACCEPT
+#   args:
+#     executable: /bin/bash
 
 - name: Install Docker and its dependecies
   become: true
@@ -83,8 +114,7 @@
     src: etc-docker-daemon-json.j2
     dest: /etc/docker/daemon.json
     mode: 'u=rw,g=r,o=r'
-  notify:
-    - Restart docker
+  register: update_docker_config_result
 
 # change service file to remove _H options from service file to be able to use daemon.json
 - name: Update Docker service to remove options
@@ -93,8 +123,19 @@
     path:  /usr/lib/systemd/system/docker.service
     regexp: ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
     replace: ExecStart=/usr/bin/dockerd --containerd=/run/containerd/containerd.sock
-  notify:
-    - Reload systemd
+  register: update_docker_service_result
+
+- name: Reload systemd
+  become: true
+  ansible.builtin.command: systemctl daemon-reload
+  when: update_docker_service_result.changed
+
+- name: Restart Docker service
+  become: true
+  ansible.builtin.service:
+    name: docker
+    state: restarted
+  when: update_docker_service_result.changed or update_docker_config_result.changed
 
 - name: Start Docker service
   become: true
@@ -102,6 +143,7 @@
     name: docker
     state: started
     enabled: true
+  when: not update_docker_service_result.changed and not update_docker_config_result.changed
 
 - name: Set Docker group members
   become: true
@@ -111,3 +153,8 @@
     append: true
   with_items:
     - "{{ user }}"
+  register: add_to_docker_group_result
+
+- name: Include reset connection tasks
+  ansible.builtin.include_tasks: reset-connection.yml
+  when: add_to_docker_group_result.changed == true

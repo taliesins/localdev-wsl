@@ -1,0 +1,18 @@
+# code: language=ansible
+---
+- name: MetalLB Fix Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: metallb-fix-yml.j2
+    dest: "{{ metallb_fix_yml }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Deploy MetalLB Fix
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.k8s:
+    #namespace: kube-system
+    state: present
+    src: "{{ metallb_fix_yml }}"
+    wait: yes

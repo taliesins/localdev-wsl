@@ -4,18 +4,32 @@ extraCNIEnv:
   IPv4_SUPPORT: {{ microk8s_ipv4_support }}
   IPv4_CLUSTER_CIDR: {{ microk8s_ipv4_cluster_cidr }}
   IPv4_SERVICE_CIDR: {{ microk8s_ipv4_service_cidr }}
-  #IPv6_SUPPORT: {{ microk8s_ipv6_support }}
-  #IPv6_CLUSTER_CIDR: {{ microk8s_ipv6_cluster_cidr }}
-  #IPv6_SERVICE_CIDR: {{ microk8s_ipv6_service_cidr }}
+  IPv6_SUPPORT: {{ microk8s_ipv6_support }}
+  IPv6_CLUSTER_CIDR: {{ microk8s_ipv6_cluster_cidr }}
+  IPv6_SERVICE_CIDR: {{ microk8s_ipv6_service_cidr }}
 extraSANs:
 {% for san in microk8s_extra_sans %}
   - {{ san }}
 {% endfor %}
+
+# 'extraKubeAPIServerArgs' is extra arguments to add to the local node kube-apiserver.
+# Set a value to null to remove it from the arguments.
+#extraKubeAPIServerArgs:
+  #--allow-privileged: true
+  #--authorization-mode: RBAC,Node
+
+# 'extraKubeletServerArgs' is extra arguments to add to the local node kubelet.
+# Set a value to null to remove it from the arguments.
 extraKubeletArgs:
+  #--network-plugin: cni
+  #--cni-bin-dir: /opt/cni/bin
+  #--allow-privileged: true
   --cluster-domain: {{ microk8s_cluster_domain }}
   --cluster-dns: {{ microk8s_cluster_dns }}
+
 addons:
   - name: community
   - name: helm3
   - name: host-access:ip={{ microk8s_host_access_ip }}
+  - name: hostpath-storage
   - name: metallb:{{ microk8s_metallb_ip_range }}
