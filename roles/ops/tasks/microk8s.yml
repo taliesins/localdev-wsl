@@ -4,7 +4,7 @@
   become: true
   ansible.builtin.template:
     src: etc-microk8s-yml.j2
-    dest: /etc/microk8s.yml
+    dest: /etc/microk8s.yaml
     backup: true
     mode: 'u=rw,g=r,o=r'
 
@@ -33,6 +33,11 @@
     append: true
   with_items:
     - "{{ user }}"
+  register: add_to_microk8s_group_result
+
+- name: Include reset connection tasks
+  ansible.builtin.include_tasks: reset-connection.yml
+  when: add_to_microk8s_group_result.changed == true
 
 - name: Create .kube folder for root
   become: true
@@ -66,9 +71,9 @@
 
 - name: Create kubectl config for user
   become: true
-  become_user: '{{ user }}'
   ansible.builtin.shell: |
     /snap/bin/microk8s config > /home/{{ user }}/.kube/config
+    chown {{ user }}:{{ user }} /home/{{ user }}/.kube/config
   args:
     executable: /bin/bash
     creates: /home/{{ user }}/.kube/config

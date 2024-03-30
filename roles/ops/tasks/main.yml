@@ -1,5 +1,9 @@
 # code: language=ansible
 ---
+- name: Kernel modules and options
+  ansible.builtin.include_tasks: kernel.yml
+- name: Bpf
+  ansible.builtin.include_tasks: bpf.yml
 - name: Docker
   ansible.builtin.include_tasks: docker.yml
 - name: Cuda Toolkit
@@ -10,5 +14,9 @@
   ansible.builtin.include_tasks: kubernetes.yml
 - name: Helm
   ansible.builtin.include_tasks: helm.yml
+- name: Cilium CLI
+  ansible.builtin.include_tasks: cilium-cli.yml
 - name: MicroK8S
   ansible.builtin.include_tasks: microk8s.yml
+- name: MetalLB-Fix
+  ansible.builtin.include_tasks: metallb-fix.yml

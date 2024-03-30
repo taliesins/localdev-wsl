@@ -22,7 +22,7 @@
     name: whoami
     release_namespace: whoami
     chart_ref: whoami/whoami
-    chart_version: whoami-5.1.0
+    chart_version: 5.1.0
     create_namespace: true
     update_repo_cache: true
     wait: true

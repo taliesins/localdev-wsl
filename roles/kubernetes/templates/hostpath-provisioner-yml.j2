@@ -1,80 +1,3 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: hostpath-provisioner
-  labels:
-    k8s-app: hostpath-provisioner
-  namespace: kube-system
-  annotations:
-    kubectl.kubernetes.io/last-applied-configuration: ""
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      k8s-app: hostpath-provisioner
-  template:
-    metadata:
-      creationTimestamp: null
-      labels:
-        k8s-app: hostpath-provisioner
-    spec:
-      volumes:
-        - name: pv-volume
-          hostPath:
-            path: /var/snap/microk8s/common/default-storage
-            type: ''
-      containers:
-        - name: hostpath-provisioner
-          image: cdkbot/hostpath-provisioner:1.5.0-amd64
-          env:
-            - name: NAMESPACE
-              valueFrom:
-                fieldRef:
-                  apiVersion: v1
-                  fieldPath: metadata.namespace
-            - name: NODE_NAME
-              valueFrom:
-                fieldRef:
-                  apiVersion: v1
-                  fieldPath: spec.nodeName
-            - name: PV_DIR
-              value: {{ host_path_provider_pv_dir }}
-            - name: BUSYBOX_IMAGE
-              value: busybox:1.35.0
-          resources: {}
-          volumeMounts:
-            - name: pv-volume
-              mountPath: {{ host_path_provider_pv_dir }}
-          terminationMessagePath: /dev/termination-log
-          terminationMessagePolicy: File
-          imagePullPolicy: IfNotPresent
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 30
-      dnsPolicy: ClusterFirst
-      serviceAccountName: microk8s-hostpath
-      serviceAccount: microk8s-hostpath
-      securityContext: {}
-      schedulerName: default-scheduler
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 25%
-      maxSurge: 25%
-  revisionHistoryLimit: 0
-  progressDeadlineSeconds: 600
-
----
-
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: microk8s-hostpath
-  annotations:
-    storageclass.kubernetes.io/is-default-class: 'true'
-provisioner: microk8s.io/hostpath
-reclaimPolicy: Delete
-volumeBindingMode: WaitForFirstConsumer
-
 ---
 
 apiVersion: v1
@@ -165,5 +88,84 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: microk8s-hostpath
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hostpath-provisioner
+  labels:
+    k8s-app: hostpath-provisioner
+  namespace: kube-system
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: ""
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: hostpath-provisioner
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        k8s-app: hostpath-provisioner
+    spec:
+      volumes:
+        - name: pv-volume
+          hostPath:
+            path: /var/snap/microk8s/common/default-storage
+            type: ''
+      containers:
+        - name: hostpath-provisioner
+          image: cdkbot/hostpath-provisioner:1.5.0-amd64
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: spec.nodeName
+            - name: PV_DIR
+              value: {{ host_path_provider_pv_dir }}
+            - name: BUSYBOX_IMAGE
+              value: busybox:1.35.0
+          resources: {}
+          volumeMounts:
+            - name: pv-volume
+              mountPath: {{ host_path_provider_pv_dir }}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      serviceAccountName: microk8s-hostpath
+      serviceAccount: microk8s-hostpath
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 0
+  progressDeadlineSeconds: 600
+
+---
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: microk8s-hostpath
+  annotations:
+    storageclass.kubernetes.io/is-default-class: 'true'
+provisioner: microk8s.io/hostpath
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
 
 ---

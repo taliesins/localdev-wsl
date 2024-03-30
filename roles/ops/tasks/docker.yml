@@ -14,6 +14,7 @@
     - curl
     - gnupg-agent
     - software-properties-common
+    - iptables-persistent
 
 - name: Add an apt signing key for Docker
   become: true
@@ -29,11 +30,6 @@
     repo: deb [arch=amd64 signed-by=/usr/share/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release | lower }} stable
     state: present
 
-# iptables -P FORWARD ACCEPT
-- name: Set IpTables DEFAULT_FORWARD_POLICY to ACCEPT
-  become: true
-  community.general.ufw: direction=routed default=allow route=yes
-
 # https://github.com/microsoft/WSL/issues/6655
 - name: Use IpTables legacy
   become: true
@@ -47,6 +43,34 @@
   community.general.alternatives:
     name: ip6tables
     path: /usr/sbin/ip6tables-legacy
+
+- name: Set IpTables DEFAULT_FORWARD_POLICY to ACCEPT
+  become: true
+  ansible.builtin.iptables:
+    chain: FORWARD
+    policy: ACCEPT
+    ip_version: ipv4
+
+- name: Set Ip6Tables DEFAULT_FORWARD_POLICY to ACCEPT
+  become: true
+  ansible.builtin.iptables:
+    chain: FORWARD
+    policy: ACCEPT
+    ip_version: ipv6
+
+# - name: Set IpTables DEFAULT_FORWARD_POLICY to ACCEPT
+#   become: true
+#   ansible.builtin.shell: |
+#     iptables -P FORWARD ACCEPT
+#   args:
+#     executable: /bin/bash
+
+# - name: Set Ip6Tables DEFAULT_FORWARD_POLICY to ACCEPT
+#   become: true
+#   ansible.builtin.shell: |
+#     ip6tables -P FORWARD ACCEPT
+#   args:
+#     executable: /bin/bash
 
 - name: Install Docker and its dependecies
   become: true
@@ -111,3 +135,8 @@
     append: true
   with_items:
     - "{{ user }}"
+  register: add_to_docker_group_result
+
+- name: Include reset connection tasks
+  ansible.builtin.include_tasks: reset-connection.yml
+  when: add_to_docker_group_result.changed == true

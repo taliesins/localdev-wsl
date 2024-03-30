@@ -1,7 +1,9 @@
 # code: language=ansible
 ---
-- name: Hostpath Provisioner
-  ansible.builtin.include_tasks: hostpath-provisioner.yml
+# - name: Cilium
+#   ansible.builtin.include_tasks: cilium.yml
+# - name: Hostpath Provisioner
+#   ansible.builtin.include_tasks: hostpath-provisioner.yml
 - name: Core DNS
   ansible.builtin.include_tasks: coredns.yml
 - name: K8S Gateway
@@ -14,3 +16,7 @@
   ansible.builtin.include_tasks: traefik.yml
 - name: Cert Manager
   ansible.builtin.include_tasks: cert-manager.yml
+# - name: Ollama
+#   ansible.builtin.include_tasks: ollama.yml
+- name: WhoAmI
+  ansible.builtin.include_tasks: whoami.yml

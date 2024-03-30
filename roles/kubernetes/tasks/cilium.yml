@@ -1,0 +1,30 @@
+# code: language=ansible
+---
+- name: Cilium Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: cilium-overrides-yml.j2
+    dest: "{{ cilium_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add Cilium chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: cilium
+    repo_url: "https://helm.cilium.io/"
+
+- name: Deploy Cilium helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: cilium
+    release_namespace: cilium
+    chart_ref: cilium/cilium
+    chart_version: v1.15.1
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ cilium_helm_overrides }}"
