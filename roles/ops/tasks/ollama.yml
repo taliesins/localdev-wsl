@@ -1,0 +1,103 @@
+# code: language=ansible
+---
+
+- name: Ensure group "ollama" exists
+  become: true
+  ansible.builtin.group:
+    name: ollama
+    state: present
+
+- name: Add the user 'ollama' and a primary group of 'ollama', appending the groups 'render' and 'video' to the user's groups
+  become: true
+  ansible.builtin.user:
+    name: ollama
+    group: ollama
+    shell: /bin/false
+    create_home: true
+    home: /usr/share/ollama
+    system: true
+    groups: render,video
+    append: yes
+
+- name: Add to ollama group members
+  become: true
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: ollama
+    append: true
+  with_items:
+    - "{{ user }}"
+  register: add_to_ollama_group_result
+
+- name: Include reset connection tasks
+  ansible.builtin.include_tasks: reset-connection.yml
+  when: add_to_ollama_group_result.changed == true
+
+- name: Create the Ollama installation dir
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: 'u=rwx,g=rx,o=rx'
+    dest: '{{ ollama_install_dir }}'
+
+- name: Check current version
+  ansible.builtin.command: >-
+    {{ ollama_install_dir }}/ollama -v | head -n 2 | tail -n 1 | grep -o '{{ ollama_version }}'
+  register: ollama_current_version
+  failed_when: false
+  changed_when: false
+
+- name: Current version
+  ansible.builtin.debug:
+    msg: '{{ ollama_current_version.stdout }}'
+  when: ollama_current_version.rc == 0
+
+- name: Remove existing installation
+  become: true
+  ansible.builtin.file:
+    path: '{{ ollama_install_dir }}'
+    state: absent
+  when:
+    - ollama_current_version.rc == 0
+    - ollama_current_version.stdout != ('v' + ollama_version)
+
+- name: Download Ollama
+  become: true
+  ansible.builtin.get_url:
+    url: '{{ ollama_mirror }}/{{ ollama_redis_filename }}'
+    dest: '{{ ollama_install_dir }}/ollama'
+    force: false
+    validate_certs: true
+    mode: 'u=rw,g=r,o=r'
+
+- name: Create ollama link
+  become: true
+  ansible.builtin.file:
+    src: '{{ ollama_install_dir }}/ollama'
+    dest: '/usr/local/bin/ollama'
+    state: link
+    owner: root
+    group: root
+    mode: 'u=rwx,o=rx,o=rx'
+
+- name: Setup Ollama service
+  become: true
+  ansible.builtin.template:
+    src: systemd-ollama-service.j2
+    dest: /etc/systemd/system/ollama.service
+    mode: 'u=rw,g=r,o=r'
+  register: update_ollama_service_result
+
+- name: Reload systemd
+  become: true
+  ansible.builtin.command: systemctl daemon-reload
+  when: update_ollama_service_result.changed
+
+- name: Restart Ollama service
+  become: true
+  ansible.builtin.service:
+    name: ollama
+    state: restarted
+  when: update_ollama_service_result.changed

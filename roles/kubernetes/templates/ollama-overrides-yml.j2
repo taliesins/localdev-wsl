@@ -4,8 +4,15 @@ ollama:
     # -- Enable GPU integration
     enabled: {{ ollama_gpu_enabled }}
 
+    # -- GPU type: 'nvidia' or 'amd'
+    type: 'nvidia'
+
     # -- Specify the number of GPU
     number: {{ ollama_number_of_gpus }}
+
+  # -- List of models to pull at container startup
+  models: 
+    - {{ ollama_default_model }}
 
   # -- Default model to serve, if not set, no model will be served at container startup
   defaultModel: "{{ ollama_default_model }}"

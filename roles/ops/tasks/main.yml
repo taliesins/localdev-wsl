@@ -10,6 +10,8 @@
   ansible.builtin.include_tasks: cuda-toolkit.yml
 - name: Nvidia Container Toolkit
   ansible.builtin.include_tasks: nvidia-container-toolkit.yml
+- name: Ollama
+  ansible.builtin.include_tasks: ollama.yml 
 - name: Kubernetes
   ansible.builtin.include_tasks: kubernetes.yml
 - name: Helm

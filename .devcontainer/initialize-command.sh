@@ -27,3 +27,5 @@ if [ -n "$full_wslpath" ]; then
   user_profile_path=$(cmd.exe /c "<nul set /p=%UserProfile%" 2> /dev/null) || :
   user_profile_path=$(wslpath -u "${user_profile_path}") || :
 fi
+
+export local_workspace_path=$local_workspace_path

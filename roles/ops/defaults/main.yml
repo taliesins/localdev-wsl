@@ -19,6 +19,32 @@ kernel_download_dir: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.
 docker_nvidia_test_image: "nvcr.io/nvidia/cuda:12.3.1-base-ubuntu22.04"
 
 ######################################################
+## Ollama
+######################################################
+
+# Ollama version number
+ollama_version: '0.1.30'
+
+# The CPU architecture of the Ollama executable to install
+ollama_architecture: 'amd64'
+
+# Operating system on which "Ollama" should run on
+ollama_os: "linux"  # use "darwin" for MacOS X, "windows" for Windows
+
+# Mirror to download Ollama from
+ollama_mirror: 'https://github.com/ollama/ollama/releases/download/v{{ ollama_version }}'
+
+ollama_redis_filename: "ollama-{{ ollama_os }}-{{ ollama_architecture }}"
+
+# Dir where Ollama should be installed
+ollama_install_dir: '/usr/local/share/ollama'
+
+# Directory to store files downloaded for Ollama
+ollama_download_dir: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}"
+
+ollama_host: "0.0.0.0:11434"
+
+######################################################
 ## Kubectl
 ######################################################
 

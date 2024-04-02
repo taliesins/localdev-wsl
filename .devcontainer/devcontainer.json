@@ -1,52 +1,62 @@
 {
-    "name": "Python 3",
-    "build": {
-      "dockerfile": "Dockerfile",
-      "context": "..",
-      "args": {
-        "CONTAINER": "mcr.microsoft.com/devcontainers/python",
-        "VARIANT": "3"
-      }
-    },
-    "initializeCommand": "bash .devcontainer/initialize-command.sh -w '${localWorkspaceFolder}'",
-    "mounts": [
-      "source=//var/run/docker.sock,target=//var/run/docker.sock,type=bind,consistency=delegated"
-    ],
-    // Set *default* container specific settings.json values on container create.
-    "settings": {
-      "python.pythonPath": "/usr/local/bin/python",
-      "python.languageServer": "Pylance",
-      "python.linting.enabled": true,
-      "python.linting.pylintEnabled": true,
-      "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
-      "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
-      "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
-      "python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
-      "python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
-      "python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
-      "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
-      "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
-      "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint"
-    },
-    // Add the IDs of extensions you want installed when the container is created.
-    "extensions": [
-      "editorconfig.editorconfig",
-      "ms-python.python",
-      "ms-python.vscode-pylance",
-      "ms-azuretools.vscode-docker",
-      "ms-kubernetes-tools.vscode-kubernetes-tools",
-      "ms-vscode.makefile-tools",
-      //"ms-vscode.powershell",
-      "redhat.vscode-xml",
-      "redhat.vscode-yaml",
-      "davidanson.vscode-markdownlint",
-      "redhat.ansible",
-      "marklarah.pre-commit-vscode"
-    ],
-    // Use 'forwardPorts' to make a list of ports inside the container available locally.
-    // "forwardPorts": [],
-    // Use 'postCreateCommand' to run commands after the container is created.
-    "postCreateCommand": "bash .devcontainer/post-create.sh -w '${localWorkspaceFolder}'",
-    // Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-    "remoteUser": "vscode"
-  }
+  "name": "Python 3",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "..",
+    "args": {
+      "CONTAINER": "mcr.microsoft.com/devcontainers/python",
+      "VARIANT": "3"
+    }
+  },
+  "initializeCommand": "bash .devcontainer/initialize-command.sh -w '${localWorkspaceFolder}'",
+  "mounts": [
+    "source=//var/run/docker.sock,target=//var/run/docker.sock,type=bind,consistency=delegated"
+  ],
+  "customizations": {
+    // Configure properties specific to VS Code.
+    "vscode": {
+      "docker.environment": {
+        "DOCKER_HOST": "tcp://10.152.0.5:2375"
+      },
+      // Set *default* container specific settings.json values on container create.
+      "settings": {
+        "python.pythonPath": "/usr/local/bin/python",
+        "python.languageServer": "Pylance",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
+        "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
+        "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
+        "python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
+        "python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
+        "python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
+        "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
+        "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
+        "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint"
+      },
+      // Add the IDs of extensions you want installed when the container is created.
+      "extensions": [
+        "editorconfig.editorconfig",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-azuretools.vscode-docker",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "ms-vscode.makefile-tools",
+        //"ms-vscode.powershell",
+        "redhat.vscode-xml",
+        "redhat.vscode-yaml",
+        "davidanson.vscode-markdownlint",
+        "redhat.ansible",
+        "marklarah.pre-commit-vscode"
+      ]
+    }
+  },
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  // "forwardPorts": [],
+  // Use 'postCreateCommand' to run commands after the container is created.
+  "postCreateCommand": "bash .devcontainer/post-create.sh -w '${localWorkspaceFolder}'",
+  // Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+  "remoteUser": "vscode",
+  "workspaceMount": "source=/mnt/c/data/localdev-wsl,target=/src,type=bind",
+  "workspaceFolder": "/src/"
+}
