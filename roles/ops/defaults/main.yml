@@ -125,25 +125,24 @@ microk8s_version: 1.29
 microk8s_channel: "{{ microk8s_version }}/stable"
 
 microk8s_ipv4_support: "true"
-microk8s_ipv4_cluster_cidr: "10.154.0.0/16"
-microk8s_ipv4_service_cidr: "10.153.0.0/16"
+microk8s_ipv4_cluster_cidr: "{{ kubernetes_cluster_network_ipv4_cidr }}"
+microk8s_ipv4_service_cidr: "{{ kubernetes_cluster_service_ipv4_cidr }}"
 microk8s_ipv6_support: "false"
-microk8s_ipv6_cluster_cidr: "fd69:fd69:fd69:154::1/64"
-microk8s_ipv6_service_cidr: "fd69:fd69:fd69:153::1/64"
+microk8s_ipv6_cluster_cidr: "{{ kubernetes_cluster_network_ipv6_cidr }}"
+microk8s_ipv6_service_cidr: "{{ kubernetes_cluster_service_ipv6_cidr }}"
 
 microk8s_extra_sans:
-  - "10.152.0.5"
-  - "fe80::215:5dff:feae:6476"
-  - "10.153.0.1"
-  - "fd69:fd69:fd69:153::1"
+  - "{{ wsl_host_ipv4_ip }}"
+  - "{{ kubernetes_cluster_service_ipv4_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('1') | ansible.utils.ipaddr('address') }}"
+  - "{{ kubernetes_cluster_service_ipv6_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('1') | ansible.utils.ipaddr('address') }}"
 
-microk8s_host_access_ip: "10.1.0.5"
+microk8s_host_access_ip: "{{ wsl_host_ipv4_ip }}"
 
-microk8s_metallb_ip_range: "10.152.0.193-10.152.0.254"
+microk8s_metallb_ip_range: "{{ kubernetes_external_network_ipv4_cidr }}"
 
 microk8s_cluster_domain: "cluster.local"
 
-microk8s_cluster_dns: "10.153.0.4"
+microk8s_cluster_dns: "{{ kubernetes_cluster_service_ipv4_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('4') | ansible.utils.ipaddr('address') }}"
 
 microk8s_kubernetes_nvidia_test_image: "nvidia/cuda:12.3.1-base-ubuntu22.04"
 

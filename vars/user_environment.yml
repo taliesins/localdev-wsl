@@ -1,5 +1,6 @@
 # code: language=ansible
 ---
+default_user: "{{ lookup('ansible.builtin.env', 'USER', default='taliesins') }}"
 user: "{{ (ansible_env.SUDO_USER is defined and ansible_env.SUDO_USER) or ansible_user_id }}"
 repo_directory: workspace
 repos: []

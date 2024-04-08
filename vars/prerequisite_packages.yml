@@ -3,8 +3,8 @@
 prerequisite_packages:
   - git
   - curl
-  - tmux
   - unzip
-  - fzf
   - nfs-common
   - open-iscsi
+  - tmux
+  - fzf

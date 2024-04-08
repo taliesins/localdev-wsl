@@ -6,7 +6,21 @@ Setup local wsl instance for development
 
 Run `setup-host.ps1`
 
-This script will update the WSL engine, download a custom kernel, configure WSL network options and fix nvidia driver linking issues.
+This script will update the WSL engine, download a custom kernel, configure WSL network options and fix nvidia driver linking issues. Then it will install Docker, MicroK8S and then will configure Kubernetes.
+
+During setup you will be asked interactively to set:
+* Username
+* Password
+* Password confirmation
+* Once instance is setup type `exit<enter>` to continue installation
+* Become password
+
+### Customization of Ansible variables
+
+To set overriden variables:
+* `wsl`
+* `cd $HOME/localdev-wsl-overrides`
+* Configure as required
 
 ## Open this project in DevContainer
 

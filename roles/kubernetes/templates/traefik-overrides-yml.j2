@@ -67,12 +67,12 @@ ports:
 #    sniStrict: true
 #    preferServerCipherSuites: true
 additionalArguments:
-  - "--entryPoints.web.forwardedHeaders.trustedIPs=127.0.0.1/32,10.1.0.1/32,10.1.0.5/32,10.152.0.0/16"
-  - "--entryPoints.websecure.forwardedHeaders.trustedIPs=127.0.0.1/32,10.1.0.1/32,10.1.0.5/32,10.152.0.0/16"
-# - "--entryPoints.pop3s.forwardedHeaders.trustedIPs=127.0.0.1/32,10.1.0.1/32,10.1.0.5/32,10.152.0.0/16"
-# - "--entryPoints.imaps.forwardedHeaders.trustedIPs=127.0.0.1/32,10.1.0.1/32,10.1.0.5/32,10.152.0.0/16"
-# - "--entryPoints.smtp.forwardedHeaders.trustedIPs=127.0.0.1/32,10.1.0.1/32,10.1.0.5/32,10.152.0.0/16"
-# - "--entryPoints.smtpd.forwardedHeaders.trustedIPs=127.0.0.1/32,10.1.0.1/32,10.1.0.5/32,10.152.0.0/16"
+  - "--entryPoints.web.forwardedHeaders.trustedIPs={{ traefik_trusted_ips }}"
+  - "--entryPoints.websecure.forwardedHeaders.trustedIPs={{ traefik_trusted_ips }}"
+# - "--entryPoints.pop3s.forwardedHeaders.trustedIPs={{ traefik_trusted_ips }}"
+# - "--entryPoints.imaps.forwardedHeaders.trustedIPs={{ traefik_trusted_ips }}"
+# - "--entryPoints.smtp.forwardedHeaders.trustedIPs={{ traefik_trusted_ips }}"
+# - "--entryPoints.smtpd.forwardedHeaders.trustedIPs={{ traefik_trusted_ips }}"
 ingressClass:
   enabled: true
   isDefaultClass: true

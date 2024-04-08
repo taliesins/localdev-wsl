@@ -48,7 +48,9 @@ setup_ssh() {
 setup_ssh
 
 # shellcheck disable=SC2236,SC2143
-if [ ! -n "$(grep "^github.com " ~/.ssh/known_hosts)" ]; then ssh-keyscan github.com >> ~/.ssh/known_hosts 2> /dev/null; fi
+if [ ! -n "$(grep "^github.com " ~/.ssh/known_hosts)" ]; then 
+  ssh-keyscan github.com >> ~/.ssh/known_hosts 2> /dev/null
+fi
 
 if [ -d $HOME/localdev-wsl ]; then
   cd $HOME/localdev-wsl
@@ -57,8 +59,33 @@ if [ -d $HOME/localdev-wsl ]; then
 else
   cd $HOME
   pwd
-  git clone https://github.com/taliesins/localdev-wsl
+  git clone $git_repo_uri 
   cd $HOME/localdev-wsl
 fi
 
+if [ -d $HOME/localdev-wsl-overrides ]; then
+  cd $HOME/localdev-wsl-overrides
+  pwd
+else
+  mkdir -p $HOME/localdev-wsl-overrides/vars
+  cd $HOME/localdev-wsl-overrides
+  pwd
+
+  cp -rf $HOME/localdev-wsl/vars/network.yml $HOME/localdev-wsl-overrides/vars/network.yml
+  cp -rf $HOME/localdev-wsl/vars/user_environment.yml $HOME/localdev-wsl-overrides/vars/user_environment.yml
+  cp -rf $HOME/localdev-wsl/vars/prerequisite_packages.yml $HOME/localdev-wsl-overrides/vars/prerequisite_packages.yml
+  cp -rf $HOME/localdev-wsl/vars/tool_versions.yml $HOME/localdev-wsl-overrides/vars/tool_versions.yml
+
+  sed -i 's/10.152.0.0\/16/$nat_network/g' $HOME/localdev-wsl-overrides/vars/network.yml
+  sed -i 's/10.152.0.5/$nat_ip_address/g' $HOME/localdev-wsl-overrides/vars/network.yml
+
+  export LOCALDEV_OVERRIDE_PATH=../localdev-wsl-overrides/
+
+  sudo tee /etc/profile.d/local_dev_override.sh > /dev/null <<'EOF'
+LOCALDEV_OVERRIDE_PATH=../localdev-wsl-overrides/
+EOF
+
+fi
+
+cd $HOME/localdev-wsl
 ansible-galaxy install -r requirements.yml

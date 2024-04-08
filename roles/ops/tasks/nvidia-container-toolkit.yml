@@ -26,6 +26,14 @@
   when: use_nvidia|default(false)|bool
   register: install_nvidia_container_toolkit_result
 
+- name: Restart Docker service
+  become: true
+  ansible.builtin.service:
+    name: docker
+    state: restarted
+  when: use_nvidia|default(false)|bool
+  changed_when: install_nvidia_container_toolkit_result.changed
+  
 - name: Check NVidia can be reached from Docker
   become: true
   docker_container: 

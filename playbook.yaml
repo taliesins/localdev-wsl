@@ -2,9 +2,11 @@
   hosts: wsl
   ### Go here to edit variables ###
   vars_files:
-    - vars/prerequisite_packages.yml
-    - vars/tool_versions.yml
-    - vars/user_environment.yml
+    - "{{ lookup('ansible.builtin.env', 'LOCALDEV_OVERRIDE_PATH', default='') }}vars/user_environment.yml"
+    - "{{ lookup('ansible.builtin.env', 'LOCALDEV_OVERRIDE_PATH', default='') }}vars/network.yml"
+    - "{{ lookup('ansible.builtin.env', 'LOCALDEV_OVERRIDE_PATH', default='') }}vars/prerequisite_packages.yml"
+    - "{{ lookup('ansible.builtin.env', 'LOCALDEV_OVERRIDE_PATH', default='') }}vars/tool_versions.yml"
+
   ### Comment out roles you don't need ###
   roles:
     - {role: 'packages', tags: 'packages'}
@@ -14,4 +16,4 @@
     - {role: 'kubernetes', tags: 'kubernetes'}
 
   ### Change to your user! ###
-  user: "{{ lookup('ansible.builtin.env', 'USER', default='taliesins') }}"
+  user: "{{ default_user }}"

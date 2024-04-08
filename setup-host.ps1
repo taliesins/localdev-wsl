@@ -1,3 +1,5 @@
+$ErrorActionPreference = "Stop"
+
 function Get-RegistryItemValue {
     param(
         [string]$KeyPath,
@@ -115,18 +117,25 @@ if (Test-Path "$nvidiaLibPath\libcuda.so.1.1"){
 #     New-Item -Path "$env:windir\System32\DriverStore\FileRepository\nv_dispig.inf_amd64_2fe7c165c5dd3267\libdxcore.so" -ItemType SymbolicLink -Value "$nvidiaLibPath\libdxcore.so"
 # }
 
-$sshPath = "$($env:USERPROFILE)\.ssh"
-$copySsh = (Get-Content -Raw ./copy-dotfiles.sh).Replace("`$windows_ssh_path", $sshPath.Replace("\", "\\"))
-wsl bash -c ($copySsh -replace '"', '\"')
+# Copy scripts over
+$windowsCwdPath = Split-Path -Parent $PSCommandPath
+$windowsSshPath = "$($env:USERPROFILE)\.ssh"
+$copyFilesOverScript = (Get-Content -Raw ./1-copy-files.sh).Replace("`$windows_cwd_path", $windowsCwdPath.Replace("\", "\\")).Replace("`$windows_ssh_path", $windowsSshPath.Replace("\", "\\"))
+wsl bash -c ($copyFilesOverScript -replace '"', '\"')
 
 #Install Ansible
-$installAnsible = Get-Content -Raw ./install-ansible.sh
-wsl bash -c ($installAnsible -replace '"', '\"')
+wsl bash -c "`$HOME/localdev-wsl-scripts/2-install-ansible.sh"
 
 #Setup Ansible solution
-$installAnsibleSolution = Get-Content -Raw ./install-ansible-solution.sh
-wsl bash -c ($installAnsibleSolution -replace '"', '\"')
+$GitRepoUri=$(git config --get remote.origin.url)
+if (!$GitRepoUri){
+    $GitRepoUri = 'https://github.com/taliesins/localdev-wsl.git'
+}
+
+wsl bash -c "sed -i 's/`\`$git_repo_uri/$($GitRepoUri.Replace('/', '\\\\\\/'))/g' `$HOME/localdev-wsl-scripts/3-install-ansible-solution.sh"
+wsl bash -c "sed -i 's/`\`$nat_network/$($NatNetwork.Replace('/', '\\\\\\/'))/g' `$HOME/localdev-wsl-scripts/3-install-ansible-solution.sh"
+wsl bash -c "sed -i 's/`\`$nat_ip_address/$($NatIpAddress.Replace('/', '\\\\\\/'))/g' `$HOME/localdev-wsl-scripts/3-install-ansible-solution.sh"
+wsl bash -c "`$HOME/localdev-wsl-scripts/3-install-ansible-solution.sh"
 
 #Run Ansible solution
-$runAnsibleSolution = Get-Content -Raw ./run-ansible-solution.sh
-wsl bash -c ($runAnsibleSolution -replace '"', '\"')
+wsl bash -c '$HOME/localdev-wsl-scripts/4-run-ansible-solution.sh'
