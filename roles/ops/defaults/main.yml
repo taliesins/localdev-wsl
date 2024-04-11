@@ -10,7 +10,7 @@ kernel_arch: "x86_64"
 kernel_mirror: "https://github.com/taliesins/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-{{ kernel_version }}"
 kernel_modules_redis_filename: "bzImage-{{ kernel_arch }}-modules_install"
 kernel_optional_redis_filename: "bzImage-{{ kernel_arch }}-optional_install"
-kernel_download_dir: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}"
+kernel_download_dir: "{{ download_path }}"
 
 ######################################################
 ## Docker
@@ -40,7 +40,7 @@ ollama_redis_filename: "ollama-{{ ollama_os }}-{{ ollama_architecture }}"
 ollama_install_dir: '/usr/local/share/ollama'
 
 # Directory to store files downloaded for Ollama
-ollama_download_dir: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}"
+ollama_download_dir: "{{ download_path }}"
 
 ollama_host: "0.0.0.0:11434"
 
@@ -66,7 +66,7 @@ kubectl_redis_filename: "kubernetes-client-{{ kubectl_os }}-{{ kubectl_arch }}.t
 kubectl_install_dir: '/usr/local/share/kubectl'
 
 # Directory to store files downloaded for kubectl
-kubectl_download_dir: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}"
+kubectl_download_dir: "{{ download_path }}"
 
 ######################################################
 ## Helm
@@ -90,7 +90,7 @@ helm_redis_filename: "helm-v{{ helm_version }}-{{ helm_os }}-{{ helm_architectur
 helm_install_dir: '/usr/local/share/helm'
 
 # Directory to store files downloaded for Helm
-helm_download_dir: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}"
+helm_download_dir: "{{ download_path }}"
 
 ######################################################
 ## Cilium CLI
@@ -114,7 +114,7 @@ cilium_cli_redis_filename: "cilium-{{ cilium_cli_os }}-{{ cilium_cli_architectur
 cilium_cli_install_dir: '/usr/local/share/cilium'
 
 # Directory to store files downloaded for Cilium
-cilium_cli_download_dir: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}"
+cilium_cli_download_dir: "{{ download_path }}"
 
 ######################################################
 ## microk8s
@@ -146,7 +146,7 @@ microk8s_cluster_dns: "{{ kubernetes_cluster_service_ipv4_cidr | ansible.utils.i
 
 microk8s_kubernetes_nvidia_test_image: "nvidia/cuda:12.3.1-base-ubuntu22.04"
 
-microk8s_kubernetes_nvidia_test_yml: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/kubernetes-nvidia-test.yml"
+microk8s_kubernetes_nvidia_test_yml: "{{ download_path }}/kubernetes-nvidia-test.yml"
 
 ######################################################
 ## Cuda
@@ -158,4 +158,4 @@ cuda_toolkit_keyring_url: "https://developer.download.nvidia.com/compute/cuda/re
 ## MetalLB - Fix
 ######################################################
 
-metallb_fix_yml: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/metallb-fix.yml"
+metallb_fix_yml: "{{ download_path }}/metallb-fix.yml"

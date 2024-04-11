@@ -5,23 +5,23 @@
 ## Cilium
 ######################################################
 
-cilium_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/cilium-overrides.yml"
+cilium_helm_overrides: "{{ download_path }}/cilium-overrides.yml"
 
 ######################################################
 ## Host path provider
 ######################################################
 
-host_path_provider_yml: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/hostpath-provisioner.yml"
+host_path_provider_yml: "{{ download_path }}/hostpath-provisioner.yml"
 host_path_provider_pv_dir: /var/snap/microk8s/common/default-storage
 
 ######################################################
 ## CoreDns
 ######################################################
 
-coredns_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/coredns-overrides.yml"
+coredns_helm_overrides: "{{ download_path }}/coredns-overrides.yml"
 
-coredns_cluster_name: "k8s"
-coredns_tld: "lan.talifun.com"
+coredns_cluster_name: "{{ cluster_name }}"
+coredns_tld: "{{ tld }}"
 coredns_primary_dns_ipv4: "{{ kubernetes_cluster_service_ipv4_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('4') | ansible.utils.ipaddr('address') }}"
 coredns_primary_dns_ipv6: "{{ kubernetes_cluster_service_ipv6_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('4') | ansible.utils.ipaddr('address') }}"
 coredns_external_domain: "{{ coredns_cluster_name }}.{{ coredns_tld }}"
@@ -32,11 +32,11 @@ coredns_upstream_dnsserver: "dns://{{ wsl_host_dns_ipv4_ip }}:53"
 ## K8S Gateway
 ######################################################
 
-k8s_gateway_primary_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/external-dns-primary-overrides.yml"
-k8s_gateway_secondary_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/external-dns-secondary-overrides.yml"
+k8s_gateway_primary_helm_overrides: "{{ download_path }}/external-dns-primary-overrides.yml"
+k8s_gateway_secondary_helm_overrides: "{{ download_path }}/external-dns-secondary-overrides.yml"
 
-k8s_gateway_cluster_name: "k8s"
-k8s_gateway_tld: "lan.talifun.com"
+k8s_gateway_cluster_name: "{{ cluster_name }}"
+k8s_gateway_tld: "{{ tld }}"
 k8s_gateway_domain: "{{ k8s_gateway_cluster_name }}.{{ k8s_gateway_tld }}"
 
 k8s_gateway_external_primary_dns_ipv4: "{{ kubernetes_external_network_ipv4_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('4') | ansible.utils.ipaddr('address') }}"
@@ -49,23 +49,23 @@ k8s_gateway_external_secondary_dns_ipv6: "{{ kubernetes_external_network_ipv6_ci
 ## NFS CSI
 ######################################################
 
-nfs_csi_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/nfs-csi-overrides.yml"
+nfs_csi_helm_overrides: "{{ download_path }}/nfs-csi-overrides.yml"
 
 ######################################################
 ## SMB CSI
 ######################################################
 
-smb_csi_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/smb-csi-overrides.yml"
+smb_csi_helm_overrides: "{{ download_path }}/smb-csi-overrides.yml"
 
 ######################################################
 ## Traefik
 ######################################################
 
-traefik_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/traefik-overrides.yml"
-traefik_dashboard_yml: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/traefik-dashboard.yml"
+traefik_helm_overrides: "{{ download_path }}/traefik-overrides.yml"
+traefik_dashboard_yml: "{{ download_path }}/traefik-dashboard.yml"
 
-traefik_cluster_name: "k8s"
-traefik_tld: "lan.talifun.com"
+traefik_cluster_name: "{{ cluster_name }}"
+traefik_tld: "{{ tld }}"
 
 traefik_ingress_ipv4: "{{ kubernetes_external_network_ipv4_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('3') | ansible.utils.ipaddr('address') }}"
 traefik_ingress_ipv6: "{{ kubernetes_external_network_ipv6_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('3') | ansible.utils.ipaddr('address') }}"
@@ -75,30 +75,39 @@ traefik_trusted_ips: "127.0.0.1/32,{{ wsl_host_network_ipv4_cidr }}"
 ## Cert Manager
 ######################################################
 
-cert_manager_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/cert-manager-overrides.yml"
+cert_manager_helm_overrides: "{{ download_path }}/cert-manager-overrides.yml"
 
 ######################################################
 ## Metrics Server
 ######################################################
 
-metrics_server_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/metrics-server-overrides.yml"
+metrics_server_helm_overrides: "{{ download_path }}/metrics-server-overrides.yml"
 
 ######################################################
 ## WhoAmI
 ######################################################
 
-whoami_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/whoami-overrides.yml"
-whoami_cluster_name: "k8s"
-whoami_tld: "lan.talifun.com"
+whoami_helm_overrides: "{{ download_path }}/whoami-overrides.yml"
+whoami_cluster_name: "{{ cluster_name }}"
+whoami_tld: "{{ tld }}"
 whoami_load_balancer_ip: "{{ kubernetes_external_network_ipv4_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('6') | ansible.utils.ipaddr('address') }}"
 
 ######################################################
 ## Ollama
 ######################################################
 
-ollama_helm_overrides: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}/ollama-overrides.yml"
-ollama_cluster_name: "k8s"
-ollama_tld: "lan.talifun.com"
+ollama_helm_overrides: "{{ download_path }}/ollama-overrides.yml"
+ollama_cluster_name: "{{ cluster_name }}"
+ollama_tld: "{{ tld }}"
 ollama_gpu_enabled: "false"
 ollama_number_of_gpus: "1"
 ollama_default_model: "llama2"
+
+######################################################
+## Flowise
+######################################################
+
+flowise_helm_overrides: "{{ download_path }}/flowise-overrides.yml"
+flowise_cluster_name: "{{ cluster_name }}"
+flowise_tld: "{{ tld }}"
+flowise_load_balancer_ip: "{{ kubernetes_external_network_ipv4_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('7') | ansible.utils.ipaddr('address') }}"

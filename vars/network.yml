@@ -1,6 +1,8 @@
 # code: language=ansible
 ---
-
+download_path: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}"
+cluster_name: "k8s"
+tld: "lan.talifun.com"
 wsl_host_network_ipv4_cidr: "10.152.0.0/16"
 wsl_host_ipv4_ip: "10.152.0.5"
 wsl_host_dns_ipv4_ip: "10.1.0.1"
