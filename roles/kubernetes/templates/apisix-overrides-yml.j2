@@ -1,0 +1,40 @@
+useDaemonSet: true
+
+service:
+  externalTrafficPolicy: Cluster
+  type: LoadBalancer
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: {{ apisix_ingress_ipv4 }}
+    io.cilium/lb-ipam-ips: {{ apisix_ingress_ipv4 }}
+
+etcd:
+  replicaCount: 1
+
+ingress-controller:
+  enabled: true
+
+  service:
+    type: LoadBalancer
+    loadBalancerIP: {{ apisix_load_balancer_ip }}
+
+  gateway:
+    externalTrafficPolicy: Cluster
+    type: LoadBalancer
+    annotations:
+      metallb.universe.tf/loadBalancerIPs: {{ apisix_ingress_ipv4 }}
+      io.cilium/lb-ipam-ips: {{ apisix_ingress_ipv4 }}
+    loadBalancerIP: {{ apisix_ingress_ipv4 }}
+
+  config:
+    apisix:
+      serviceNamespace: apisix
+
+dashboard:
+  enabled: true
+  
+  ingress:
+    enabled: true
+    hosts:
+    - host: apisix.apisix.{{ apisix_cluster_name }}.{{ apisix_tld }}
+      paths:
+        - /

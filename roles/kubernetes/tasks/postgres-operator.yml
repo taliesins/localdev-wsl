@@ -1,0 +1,30 @@
+# code: language=ansible
+---
+- name: Postgres Operator Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: postgres-operator-overrides-yml.j2
+    dest: "{{ postgres_operator_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add Postgres Operator chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: postgres-operator
+    repo_url: "https://opensource.zalando.com/postgres-operator/charts/postgres-operator"
+
+- name: Deploy Postgres Operator helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: postgres-operator
+    release_namespace: postgres-operator
+    chart_ref: postgres-operator/postgres-operator
+    chart_version: 1.11.0
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ postgres_operator_helm_overrides }}"

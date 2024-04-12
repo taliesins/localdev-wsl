@@ -1,5 +1,24 @@
 # code: language=ansible
 ---
+
+- name: Ollama proxy service yaml
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: ollama-external-yml.j2
+    dest: "{{ ollama_external_yml }}"
+    mode: 'u=rw,g=r,o=r'
+  when: ollama_use_external_service
+
+- name: Deploy external Ollama proxy services
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ ollama_external_yml }}"
+    wait: yes
+  when: ollama_use_external_service
+
 - name: Ollama Helm Overrides
   become: true
   become_user: '{{ user }}'
@@ -7,6 +26,7 @@
     src: ollama-overrides-yml.j2
     dest: "{{ ollama_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  when: not ollama_use_external_service
 
 - name: Add Ollama chart repo
   become: true
@@ -14,6 +34,7 @@
   kubernetes.core.helm_repository:
     name: ollama
     repo_url: "https://otwld.github.io/ollama-helm/"
+  when: not ollama_use_external_service
 
 - name: Deploy Ollama helm chart
   become: true
@@ -28,3 +49,4 @@
     wait: true
     values_files:
       - "{{ ollama_helm_overrides }}"
+  when: not ollama_use_external_service

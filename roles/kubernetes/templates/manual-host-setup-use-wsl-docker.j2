@@ -1,0 +1,28 @@
+echo "Install Docker CE"
+$tools_path="c:\data\tools"
+New-Item -ItemType Directory -Path $tools_path -Force
+
+$docker_arch="x86_64"
+$docker_version="26.0.1"
+$docker_uri="https://download.docker.com/win/static/stable/$($docker_arch)/docker-$($docker_version).zip"
+invoke-webrequest -uri "$docker_uri" -outfile "$tools_path\docker.zip"
+Expand-Archive -LiteralPath "$tools_path\docker.zip" -DestinationPath $tools_path
+
+echo "Install Docker BuildX plugin"
+$docker_plugins_path="$($env:USERPROFILE)\.docker\cli-plugins"
+New-Item -ItemType Directory -Path $docker_plugins_path -Force
+
+$buildx_arch="amd64"
+$buildx_version="0.14.0-rc1"
+$buildx_uri="https://github.com/docker/buildx/releases/download/v$($buildx_version)/buildx-v$($buildx_version).windows-$($buildx_arch).exe"
+invoke-webrequest -uri "$buildx_uri" -outfile "$($docker_plugins_path)\docker-buildx.exe"
+
+echo "Set docker context to WSL"
+docker context ls
+
+docker context create wsl --docker "host=tcp://{{ wsl_host_ipv4_ip }}:2375"
+docker context use wsl
+
+docker context ls
+
+docker run --rm hello-world

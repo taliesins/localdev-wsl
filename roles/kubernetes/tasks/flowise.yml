@@ -1,0 +1,30 @@
+# code: language=ansible
+---
+- name: Flowise Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: flowise-overrides-yml.j2
+    dest: "{{ flowise_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add Flowise chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: flowise
+    repo_url: "https://cowboysysop.github.io/charts/"
+
+- name: Deploy Flowise helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: flowise
+    release_namespace: flowise
+    chart_ref: flowise/flowise
+    chart_version: 3.2.0
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ flowise_helm_overrides }}"

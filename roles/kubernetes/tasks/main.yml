@@ -14,9 +14,20 @@
   ansible.builtin.include_tasks: smb-csi.yml
 - name: Traefik
   ansible.builtin.include_tasks: traefik.yml
+# - name: ApiSix
+#   ansible.builtin.include_tasks: apisix.yml
 - name: Cert Manager
   ansible.builtin.include_tasks: cert-manager.yml
-# - name: Ollama
-#   ansible.builtin.include_tasks: ollama.yml
 - name: WhoAmI
   ansible.builtin.include_tasks: whoami.yml
+- name: Postgres Operator
+  ansible.builtin.include_tasks: postgres-operator.yml
+- name: Postgres Operator UI
+  ansible.builtin.include_tasks: postgres-operator-ui.yml
+- name: Ollama
+  ansible.builtin.include_tasks: ollama.yml
+# - name: Flowise
+#   ansible.builtin.include_tasks: flowise.yml
+
+- name: Manual host setup instructions
+  ansible.builtin.include_tasks: manual-host-setup.yml

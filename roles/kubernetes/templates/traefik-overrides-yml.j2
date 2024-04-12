@@ -4,6 +4,7 @@ service:
   annotations:
     metallb.universe.tf/loadBalancerIPs: {{ traefik_ingress_ipv4 }}
     io.cilium/lb-ipam-ips: {{ traefik_ingress_ipv4 }}
+  loadBalancerIP: {{ traefik_ingress_ipv4 }}
 rbac:
   enabled: true
 ports:

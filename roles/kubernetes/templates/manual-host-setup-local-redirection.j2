@@ -1,0 +1,15 @@
+echo "Forward host ports to WSL"
+
+netsh interface portproxy show all
+
+netsh interface portproxy delete v4tov4 listenaddress=0.0.0.0 listenport=53
+netsh interface portproxy delete v4tov4 listenaddress=0.0.0.0 listenport=853
+netsh interface portproxy delete v4tov4 listenaddress=0.0.0.0 listenport=80
+netsh interface portproxy delete v4tov4 listenaddress=0.0.0.0 listenport=443
+
+netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=53 connectaddress={{ k8s_gateway_external_primary_dns_ipv4 }} connectport=53
+netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=853 connectaddress={{ k8s_gateway_external_primary_dns_ipv4 }} connectport=853
+netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=80 connectaddress={{ traefik_ingress_ipv4 }} connectport=80
+netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=443 connectaddress={{ traefik_ingress_ipv4 }} connectport=443
+
+netsh interface portproxy show all

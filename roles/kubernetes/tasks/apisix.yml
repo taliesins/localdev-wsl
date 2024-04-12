@@ -1,0 +1,30 @@
+# code: language=ansible
+---
+- name: ApiSix Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: apisix-overrides-yml.j2
+    dest: "{{ apisix_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add ApiSix chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: apisix
+    repo_url: "https://charts.apiseven.com"
+
+- name: Deploy ApiSix helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: apisix
+    release_namespace: apisix
+    chart_ref: apisix/apisix
+    chart_version: 2.6.0
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ apisix_helm_overrides }}"

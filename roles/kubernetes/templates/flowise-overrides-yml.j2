@@ -1,0 +1,10 @@
+service:
+  type: LoadBalancer
+  loadBalancerIP: {{ flowise_load_balancer_ip }}
+
+ingress:
+  enabled: true
+  hosts:
+  - host: flowise.flowise.{{ flowise_cluster_name }}.{{ flowise_tld }}
+    paths:
+      - /

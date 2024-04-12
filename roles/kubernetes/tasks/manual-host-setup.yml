@@ -1,0 +1,13 @@
+- set_fact:
+    manual_host_setup_local_redirection_rendered_template: "{{ lookup('template', './manual-host-setup-local-redirection.j2') }}"
+
+- name: Print how to setup local redirection
+  ansible.builtin.debug:
+    msg: "{{ manual_host_setup_local_redirection_rendered_template }}"
+
+- set_fact:
+    manual_host_setup_use_wsl_docker_rendered_template: "{{ lookup('template', './manual-host-setup-use-wsl-docker.j2') }}"
+
+- name: Print how to setup use WSL Docker
+  ansible.builtin.debug:
+    msg: "{{ manual_host_setup_use_wsl_docker_rendered_template }}"
