@@ -118,6 +118,27 @@ postgres_operator_ui_tld: "{{ tld }}"
 postgres_operator_ui_load_balancer_ip: "{{ kubernetes_external_network_ipv4_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('6') | ansible.utils.ipaddr('address') }}"
 
 ######################################################
+## Postgres Cluster
+######################################################
+
+postgres_cluster_yml: "{{ download_path }}/postgres-cluster.yml"
+
+postgres_cluster_name: postgres-cluster
+postgres_cluster_volume_size: 1Gi
+postgres_cluster_instances: 1
+
+postgres_cluster_flowise_database_name: flowise
+postgres_cluster_flowise_database_username: flowise.flowise
+
+postgres_cluster_users: |
+    {{ postgres_cluster_flowise_database_username }}:
+    - superuser
+    - createdb
+
+postgres_cluster_databases: |
+    {{ postgres_cluster_flowise_database_name }}: {{ postgres_cluster_flowise_database_username }}
+
+######################################################
 ## Ollama
 ######################################################
 

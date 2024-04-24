@@ -1,0 +1,33 @@
+# code: language=ansible
+---
+- name: Postgres Cluster Yaml
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: postgres-cluster-yml.j2
+    dest: "{{ postgres_cluster_yml }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Create Postgres Cluster namespace
+  kubernetes.core.k8s:
+    name: postgres-cluster
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Create database namespaces
+  kubernetes.core.k8s:
+    name: "{{ item }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+  with_items: "{{ postgres_cluster_databases | from_yaml | list | lower | regex_replace('^(.+)\\..*$', '\\1') }}"
+
+- name: Deploy Postgres Cluster
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.k8s:
+    namespace: postgres-cluster
+    state: present
+    src: "{{ postgres_cluster_yml }}"
+    wait: yes

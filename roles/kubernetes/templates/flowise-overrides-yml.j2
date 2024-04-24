@@ -8,3 +8,10 @@ ingress:
   - host: flowise.flowise.{{ flowise_cluster_name }}.{{ flowise_tld }}
     paths:
       - /
+
+externalPostgresql:
+  enabled: true
+  host: {{ postgres_cluster_name }}.postgres-cluster
+  username: {{ postgres_cluster_flowise_database_username }}
+  existingSecret: {{ postgres_cluster_flowise_database_username }}.{{ postgres_cluster_name }}.credentials.postgresql.acid.zalan.do
+  database: {{ postgres_cluster_flowise_database_name }}

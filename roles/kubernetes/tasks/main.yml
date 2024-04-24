@@ -24,10 +24,12 @@
   ansible.builtin.include_tasks: postgres-operator.yml
 - name: Postgres Operator UI
   ansible.builtin.include_tasks: postgres-operator-ui.yml
+- name: Postgres Cluster
+  ansible.builtin.include_tasks: postgres-cluster.yml
 - name: Ollama
   ansible.builtin.include_tasks: ollama.yml
-# - name: Flowise
-#   ansible.builtin.include_tasks: flowise.yml
+- name: Flowise
+  ansible.builtin.include_tasks: flowise.yml
 
 - name: Manual host setup instructions
   ansible.builtin.include_tasks: manual-host-setup.yml

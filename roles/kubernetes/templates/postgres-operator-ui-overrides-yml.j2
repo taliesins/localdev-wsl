@@ -8,3 +8,6 @@ ingress:
   - host: postgres.postgres.{{ postgres_operator_ui_cluster_name }}.{{ postgres_operator_ui_tld }}
     paths:
       - /
+
+envs:
+  targetNamespace: "*"
