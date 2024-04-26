@@ -1,0 +1,27 @@
+# code: language=ansible
+---
+- name: Get open-webui from github
+  ansible.builtin.git:
+    repo: https://github.com/open-webui/open-webui.git
+    dest: "{{ open_webui_repo_path }}"
+    version: "{{ open_webui_repo_version }}"
+
+- name: Open WebUI Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: open-webui-overrides-yml.j2
+    dest: "{{ open_webui_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Deploy Open WebUI helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: open-webui
+    release_namespace: open-webui
+    chart_ref: "{{ open_webui_repo_path }}/kubernetes/helm"
+    create_namespace: true
+    wait: true
+    values_files:
+      - "{{ open_webui_helm_overrides }}"

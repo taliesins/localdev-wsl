@@ -152,6 +152,16 @@ ollama_number_of_gpus: "1"
 ollama_default_model: "llama2"
 
 ######################################################
+## Open WebUI
+######################################################
+
+open_webui_repo_path: "{{ download_path }}/open-webui"
+open_webui_repo_version: v0.1.121
+open_webui_helm_overrides: "{{ download_path }}/open-webui-overrides.yml"
+open_webui_cluster_name: "{{ cluster_name }}"
+open_webui_tld: "{{ tld }}"
+
+######################################################
 ## Flowise
 ######################################################
 

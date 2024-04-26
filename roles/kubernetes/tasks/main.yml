@@ -28,6 +28,8 @@
   ansible.builtin.include_tasks: postgres-cluster.yml
 - name: Ollama
   ansible.builtin.include_tasks: ollama.yml
+- name: Open WebUI
+  ansible.builtin.include_tasks: open-webui.yml
 - name: Flowise
   ansible.builtin.include_tasks: flowise.yml
 

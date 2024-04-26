@@ -10,21 +10,19 @@ metadata:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ollama-proxy-service
+  name: ollama
   namespace: ollama
 spec:
   ports:
-    - port: 11434
+    - port: 80
       protocol: TCP
-      targetPort: 11434
-      name: http
 
 ---
 
 apiVersion: v1
 kind: Endpoints
 metadata:
-  name: ollama-proxy-service # Must be equal to Service name for automatic mapping
+  name: ollama # Must be equal to Service name for automatic mapping
   namespace: ollama
 subsets:
 - addresses:
@@ -34,36 +32,21 @@ subsets:
 
 ---
 
-apiVersion: discovery.k8s.io/v1
-kind: EndpointSlice
-metadata:  
-  name: ollama-proxy-service
-  namespace: ollama
-  labels:
-    kubernetes.io/service-name: ollama-proxy-service # Must be present for EndpointSlice and equal to Service name for automatic mapping - with having it in place, you can change the name of EndpointSlice to something else. The official convention is using Service name as the prefix.
-addressType: IPv4
-ports:
-  - port: 11434
-endpoints:
-  - addresses:
-    - "{{ wsl_host_ipv4_ip }}"
-
----
-
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ollama-proxy-service-ingress
+  name: ollama-ingress
   namespace: ollama  
 spec:
   rules:
   - host: ollama.ollama.{{ ollama_cluster_name }}.{{ ollama_tld }}
     http:
       paths:
-      - backend:
+      - pathType: Prefix
+        path: "/"
+        backend:
           service:
-            name: ollama-proxy-service
+            name: ollama
             port:
-              number: 11434
-        path: /
-        pathType: ImplementationSpecific
+              number: 80
+---

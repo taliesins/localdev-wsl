@@ -101,3 +101,13 @@
     name: ollama
     state: restarted
   when: update_ollama_service_result.changed
+
+- name: "Enable and (re)start Ollama service"
+  become: true
+  systemd:
+    name: "ollama"
+    daemon_reload: "{{ restart }}"
+    enabled: yes
+    state: "{{ restart|ternary('restarted', 'started') }}"
+  vars:
+    restart: "{{ update_ollama_service_result.changed }}"
