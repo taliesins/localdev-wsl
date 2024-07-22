@@ -15,16 +15,16 @@
     name: redis-operator
     repo_url: "https://spotahome.github.io/redis-operator"
 
-- name: Deploy Redis Operator helm chart
-  become: true
-  become_user: '{{ user }}'
-  kubernetes.core.helm:
-    name: redis-operator
-    release_namespace: redis-operator
-    chart_ref: redis-operator/redis-operator
-    chart_version: 3.3.0
-    create_namespace: true
-    update_repo_cache: true
-    wait: true
-    values_files:
-      - "{{ redis_operator_helm_overrides }}"
+# - name: Deploy Redis Operator helm chart
+#   become: true
+#   become_user: '{{ user }}'
+#   kubernetes.core.helm:
+#     name: redis-operator
+#     release_namespace: redis-operator
+#     chart_ref: redis-operator/redis-operator
+#     chart_version: 3.3.0
+#     create_namespace: true
+#     update_repo_cache: true
+#     wait: true
+#     values_files:
+#       - "{{ redis_operator_helm_overrides }}"
