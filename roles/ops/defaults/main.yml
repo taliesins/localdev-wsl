@@ -120,7 +120,7 @@ cilium_cli_download_dir: "{{ download_path }}"
 ## microk8s
 ######################################################
 
-microk8s_version: 1.30
+microk8s_version: "1.30"
 
 microk8s_channel: "{{ microk8s_version }}/stable"
 
