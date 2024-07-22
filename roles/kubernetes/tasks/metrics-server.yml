@@ -22,7 +22,7 @@
     name: metrics-server
     release_namespace: metrics-server
     chart_ref: metrics-server/metrics-server
-    chart_version: v3.11.0
+    chart_version: v3.12.1
     create_namespace: true
     update_repo_cache: true
     wait: true

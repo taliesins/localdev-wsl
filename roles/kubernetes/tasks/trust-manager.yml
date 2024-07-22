@@ -1,47 +1,47 @@
 # code: language=ansible
 ---
-- name: Cert Manager Helm Overrides
+- name: Trust Manager Helm Overrides
   become: true
   become_user: '{{ user }}'
   ansible.builtin.template:
-    src: cert-manager-overrides-yml.j2
-    dest: "{{ cert_manager_helm_overrides }}"
+    src: trust-manager-overrides-yml.j2
+    dest: "{{ trust_manager_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
 
-- name: Add Cert Manager chart repo
+- name: Add Trust Manager chart repo
   become: true
   become_user: '{{ user }}'
   kubernetes.core.helm_repository:
-    name: cert-manager
+    name: trust-manager
     repo_url: "https://charts.jetstack.io"
 
-- name: Deploy Cert Manager helm chart
+- name: Deploy Trust Manager helm chart
   become: true
   become_user: '{{ user }}'
   kubernetes.core.helm:
-    name: cert-manager
-    release_namespace: cert-manager
-    chart_ref: cert-manager/cert-manager
-    chart_version: v1.15.1
+    name: trust-manager
+    release_namespace: trust-manager
+    chart_ref: cert-manager/trust-manager
+    chart_version: v0.9.0
     create_namespace: true
     update_repo_cache: true
     wait: true
     values_files:
-      - "{{ cert_manager_helm_overrides }}"
+      - "{{ trust_manager_helm_overrides }}"
 
-- name: cert-manager crds Yaml
+- name: trust-manager crds Yaml
   become: true
   become_user: '{{ user }}'
   ansible.builtin.template:
-    src: cert-manager-overrides-yml.j2
-    dest: "{{ cert_manager_crds_yml }}"
+    src: trust-manager-overrides-yml.j2
+    dest: "{{ trust_manager_crds_yml }}"
     mode: 'u=rw,g=r,o=r'
 
-- name: Deploy cert-manager crds
+- name: Deploy trust-manager crds
   become: true
   become_user: '{{ user }}'
   kubernetes.core.k8s:
     namespace: cert-manager
     state: present
-    src: "{{ cert_manager_crds_yml }}"
+    src: "{{ trust_manager_crds_yml }}"
     wait: yes

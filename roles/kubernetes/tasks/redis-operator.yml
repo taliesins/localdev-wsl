@@ -1,0 +1,30 @@
+# code: language=ansible
+---
+- name: Redis Operator Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: redis-operator-overrides-yml.j2
+    dest: "{{ redis_operator_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add Redis Operator chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: redis-operator
+    repo_url: "https://spotahome.github.io/redis-operator"
+
+- name: Deploy Redis Operator helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: redis-operator
+    release_namespace: redis-operator
+    chart_ref: redis-operator/redis-operator
+    chart_version: 3.3.0
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ redis_operator_helm_overrides }}"

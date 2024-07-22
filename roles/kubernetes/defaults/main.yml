@@ -86,6 +86,14 @@ apisix_ingress_ipv6: "{{ kubernetes_external_network_ipv6_cidr | ansible.utils.i
 ######################################################
 
 cert_manager_helm_overrides: "{{ download_path }}/cert-manager-overrides.yml"
+cert_manager_crds_yml: "{{ download_path }}/cert-manager-crds.yml"
+
+######################################################
+## Trust Manager
+######################################################
+
+trust_manager_helm_overrides: "{{ download_path }}/trust-manager-overrides.yml"
+trust_manager_crds_yml: "{{ download_path }}/trust-manager-crds.yml"
 
 ######################################################
 ## Metrics Server
@@ -137,6 +145,23 @@ postgres_cluster_users: |
 
 postgres_cluster_databases: |
     {{ postgres_cluster_flowise_database_name }}: {{ postgres_cluster_flowise_database_username }}
+
+######################################################
+## Redis Operator
+######################################################
+
+redis_operator_helm_overrides: "{{ download_path }}/redis-operator-overrides.yml"
+redis_operator_ui_cluster_name: "{{ cluster_name }}"
+redis_operator_ui_tld: "{{ tld }}"
+
+######################################################
+## OpenSearch Operator
+######################################################
+
+opensearch_operator_helm_overrides: "{{ download_path }}/opensearch-operator-overrides.yml"
+opensearch_operator_ui_cluster_name: "{{ cluster_name }}"
+opensearch_operator_ui_tld: "{{ tld }}"
+opensearch_load_balancer_ip: "{{ kubernetes_external_network_ipv4_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('8') | ansible.utils.ipaddr('address') }}"
 
 ######################################################
 ## Ollama

@@ -1,1 +1,9 @@
-installCRDs: true
+crds:
+  enabled: true
+ingressShim:
+  defaultIssuerName: letsencrypt-production
+  defaultIssuerKind: ClusterIssuer
+global:
+  leaderElection:
+    namespace: cert-manager
+enableCertificateOwnerRef: true

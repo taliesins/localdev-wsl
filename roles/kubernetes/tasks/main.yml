@@ -26,6 +26,10 @@
   ansible.builtin.include_tasks: postgres-operator-ui.yml
 - name: Postgres Cluster
   ansible.builtin.include_tasks: postgres-cluster.yml
+- name: Redis Operator
+  ansible.builtin.include_tasks: redis-operator.yml
+- name: OpenSearch Operator
+  ansible.builtin.include_tasks: opensearch-operator.yml
 - name: Ollama
   ansible.builtin.include_tasks: ollama.yml
 - name: Open WebUI

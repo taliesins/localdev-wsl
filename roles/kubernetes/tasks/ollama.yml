@@ -43,7 +43,7 @@
     name: ollama
     release_namespace: ollama
     chart_ref: ollama/ollama
-    chart_version: 0.21.1
+    chart_version: 0.45.0
     create_namespace: true
     update_repo_cache: true
     wait: true
