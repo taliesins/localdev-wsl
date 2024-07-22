@@ -37,11 +37,11 @@
     dest: "{{ cert_manager_crds_yml }}"
     mode: 'u=rw,g=r,o=r'
 
-- name: Deploy cert-manager crds
-  become: true
-  become_user: '{{ user }}'
-  kubernetes.core.k8s:
-    namespace: cert-manager
-    state: present
-    src: "{{ cert_manager_crds_yml }}"
-    wait: yes
+# - name: Deploy cert-manager crds
+#   become: true
+#   become_user: '{{ user }}'
+#   kubernetes.core.k8s:
+#     namespace: cert-manager
+#     state: present
+#     src: "{{ cert_manager_crds_yml }}"
+#     wait: yes
