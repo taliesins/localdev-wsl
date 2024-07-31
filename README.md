@@ -15,6 +15,10 @@ During setup you will be asked interactively to set:
 * Once instance is setup type `exit<enter>` to continue installation
 * Become password
 
+## Uninstall WSL instance
+
+Run `wsl --unregister Ubuntu-22.04`
+
 ### Customization of Ansible variables
 
 To set overriden variables:

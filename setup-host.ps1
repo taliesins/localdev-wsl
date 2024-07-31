@@ -21,68 +21,75 @@ function Enable-WindowsFeature {
         [string]$FeatureName
     )
 
-    $feature=Get-WindowsOptionalFeature -Online -FeatureName $FeatureName
-    if ($feature.State -ne 'Enabled'){
+    $feature = Get-WindowsOptionalFeature -Online -FeatureName $FeatureName
+    if ($feature.State -ne 'Enabled') {
         Enable-WindowsOptionalFeature -Online -FeatureName $FeatureName
     }
 }
+
+$WslDistribution = "Ubuntu-22.04"
+$WslDistributionInstallerName = "ubuntu2204"
+$WslInstanceName = "Ubuntu-22.04"
+
+$WslKernelVersion = '6.10.0'
+$WslKernelPath = 'c:\data\wsl2'
+
+$NatNetwork = '10.152.0.0/16'
+$NatGatewayIpAddress = '10.152.0.1'
+$NatIpAddress = '10.152.0.5'
 
 #Enable WSL pre-requisities
 Enable-WindowsFeature -FeatureName Microsoft-Windows-Subsystem-Linux
 Enable-WindowsFeature -FeatureName VirtualMachinePlatform
 
-#Setup WSL
-$instance = "Ubuntu-22.04"
+#Setup WSL instance
 $env:WSL_UTF8 = "1"
 
 wsl --shutdown
 wsl --update
 wsl --set-default-version 2
-$foundInstance=$(wsl -l | %{$_.Replace("`0","")} | ?{$_ -match "^$($instance)"})
-if (!$foundInstance){
+$foundInstance = $(wsl -l | % { $_.Replace("`0", "") } | ? { $_ -match "^$($WslInstanceName)" })
+if (!$foundInstance) {
     wsl --list --online
-    wsl --install -d $instance
+    wsl --install $WslDistribution --no-launch
+    & "$($env:LOCALAPPDATA)\Microsoft\WindowsApps\$($WslDistributionInstallerName)" install --root
+    wsl --install -d $WslInstanceName
 }
-wsl --setdefault $instance
+wsl --setdefault $WslInstanceName
 wsl --shutdown
 
 #Download custom kernel
-$kernelVersion = '6.8.0'
-$wslPath = 'c:\data\wsl2'
-$customKernelPath = "$($wslPath)\bzImage-x86_64"
-$url = "https://github.com/taliesins/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-$($kernelVersion)/bzImage-x86_64"
-New-Item -Path $wslPath -ItemType Directory -Force
+$customKernelPath = "$($WslKernelPath)\bzImage-x86_64"
+$url = "https://github.com/taliesins/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-$($WslKernelVersion)/bzImage-x86_64"
+New-Item -Path $WslKernelPath -ItemType Directory -Force
 $webClient = New-Object System.Net.WebClient
 $webClient.DownloadFile($url, $customKernelPath)
 $webClient.Dispose()
 
 #Configure wsl network options
-$RegistryPath='HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss'
-$NatNetwork=Get-RegistryItemValue -KeyPath $RegistryPath -ItemName 'NatNetwork'
-if (!$NatNetwork) {
-    $NatNetwork='10.152.0.0/16'
+$RegistryPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss'
+$CurrentNatNetwork = Get-RegistryItemValue -KeyPath $RegistryPath -ItemName 'NatNetwork'
+if (!$CurrentNatNetwork -or $CurrentNatNetwork -ne $NatNetwork) {
     New-ItemProperty -Path $RegistryPath -Name 'NatNetwork' -Value $NatNetwork -PropertyType String -Force
 }
 
-$NatGatewayIpAddress=Get-RegistryItemValue -KeyPath $RegistryPath -ItemName 'NatGatewayIpAddress'
-if (!$NatGatewayIpAddress) {
-    $NatGatewayIpAddress='10.152.0.1'
+$CurrentNatGatewayIpAddress = Get-RegistryItemValue -KeyPath $RegistryPath -ItemName 'NatGatewayIpAddress'
+if (!CurrentNatGatewayIpAddress -or $CurrentNatGatewayIpAddress -ne $NatGatewayIpAddress) {
     New-ItemProperty -Path $RegistryPath -Name 'NatGatewayIpAddress' -Value $NatGatewayIpAddress -PropertyType String -Force
 }
 
-$RegistryPath='HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss'
-$NatIpAddress=Get-RegistryItemValue -KeyPath $RegistryPath -ItemName 'NatIpAddress'
-if (!$NatIpAddress) {
-    $NatIpAddress='10.152.0.5'
+$RegistryPath = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss'
+$CurrentNatIpAddress = Get-RegistryItemValue -KeyPath $RegistryPath -ItemName 'NatIpAddress'
+if (!$CurrentNatIpAddress -or $CurrentNatIpAddress -ne $NatIpAddress) {
     New-ItemProperty -Path $RegistryPath -Name 'NatIpAddress' -Value $NatIpAddress -PropertyType String -Force
 }
 
 # Configure wsl options
-$memory=(Get-CimInstance Win32_PhysicalMemory | Measure-Object -Property capacity -Sum).sum /1gb
-if ($memory -gt 8){
+$memory = (Get-CimInstance Win32_PhysicalMemory | Measure-Object -Property capacity -Sum).sum / 1gb
+if ($memory -gt 8) {
     $memory = $memory - 4
 }
-$processors=(Get-ComputerInfo).CsNumberOfLogicalProcessors
+$processors = (Get-ComputerInfo).CsNumberOfLogicalProcessors
 $wslConfigPath = "$env:USERPROFILE\.wslconfig"
 $wslConfig = @"
 [wsl2]
@@ -103,8 +110,8 @@ kernel=$($customKernelPath.Replace("\","\\"))
 Set-Content -Path $wslConfigPath -Value $wslConfig
 
 #Fix nvidia
-$nvidiaLibPath="$env:windir\System32\lxss\lib"
-if (Test-Path "$nvidiaLibPath\libcuda.so.1.1"){
+$nvidiaLibPath = "$env:windir\System32\lxss\lib"
+if (Test-Path "$nvidiaLibPath\libcuda.so.1.1") {
     if (!(Test-Path -Path "$nvidiaLibPath\libcuda.so")) {
         New-Item -Path "$nvidiaLibPath\libcuda.so" -ItemType SymbolicLink -Value "$nvidiaLibPath\libcuda.so.1.1"
     }
@@ -127,8 +134,8 @@ wsl bash -c ($copyFilesOverScript -replace '"', '\"')
 wsl bash -c "`$HOME/localdev-wsl-scripts/2-install-ansible.sh"
 
 #Setup Ansible solution
-$GitRepoUri=$(git config --get remote.origin.url)
-if (!$GitRepoUri){
+$GitRepoUri = $(git config --get remote.origin.url)
+if (!$GitRepoUri) {
     $GitRepoUri = 'https://github.com/taliesins/localdev-wsl.git'
 }
 
