@@ -66,7 +66,7 @@
 - name: Download Ollama
   become: true
   ansible.builtin.get_url:
-    url: '{{ ollama_mirror }}/{{ ollama_redis_filename }}'
+    url: '{{ ollama_mirror }}/{{ ollama_filename }}'
     dest: '{{ ollama_install_dir }}/ollama'
     force: false
     validate_certs: true

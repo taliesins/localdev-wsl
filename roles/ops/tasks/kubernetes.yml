@@ -37,8 +37,8 @@
 
 - name: Download sha256sum
   ansible.builtin.get_url:
-    url: '{{ kubectl_mirror }}/{{ kubectl_redis_filename }}.sha256'
-    dest: '{{ kubectl_download_dir }}/{{ kubectl_redis_filename }}.sha256'
+    url: '{{ kubectl_mirror }}/{{ kubectl_filename }}.sha256'
+    dest: '{{ kubectl_download_dir }}/{{ kubectl_filename }}.sha256'
     force: false
     use_proxy: true
     validate_certs: true
@@ -46,13 +46,13 @@
 
 - name: Read sha256sum
   ansible.builtin.slurp:
-    src: '{{ kubectl_download_dir }}/{{ kubectl_redis_filename }}.sha256'
+    src: '{{ kubectl_download_dir }}/{{ kubectl_filename }}.sha256'
   register: kubectl_sha256sum
 
 - name: Download Kubectl
   ansible.builtin.get_url:
-    url: '{{ kubectl_mirror }}/{{ kubectl_redis_filename }}'
-    dest: '{{ kubectl_download_dir }}/{{ kubectl_redis_filename }}'
+    url: '{{ kubectl_mirror }}/{{ kubectl_filename }}'
+    dest: '{{ kubectl_download_dir }}/{{ kubectl_filename }}'
     checksum: 'sha256:{{ kubectl_sha256sum.content | b64decode | trim }}'
     force: false
     use_proxy: true
@@ -93,7 +93,7 @@
 - name: Install Kubectl
   become: true
   ansible.builtin.unarchive:
-    src: '{{ kubectl_download_dir }}/{{ kubectl_redis_filename }}'
+    src: '{{ kubectl_download_dir }}/{{ kubectl_filename }}'
     remote_src: true
     dest: '{{ kubectl_install_dir }}'
     extra_opts:

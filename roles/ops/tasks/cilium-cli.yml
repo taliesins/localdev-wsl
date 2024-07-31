@@ -20,21 +20,21 @@
 
 - name: Download sha256sum
   ansible.builtin.get_url:
-    url: '{{ cilium_cli_mirror }}/{{ cilium_cli_redis_filename }}.sha256sum'
-    dest: '{{ cilium_cli_download_dir }}/{{ cilium_cli_redis_filename }}.sha256sum'
+    url: '{{ cilium_cli_mirror }}/{{ cilium_cli_filename }}.sha256sum'
+    dest: '{{ cilium_cli_download_dir }}/{{ cilium_cli_filename }}.sha256sum'
     force: false
     validate_certs: true
     mode: 'u=rw,g=r,o=r'
 
 - name: Read sha256sum
   ansible.builtin.slurp:
-    src: '{{ cilium_cli_download_dir }}/{{ cilium_cli_redis_filename }}.sha256sum'
+    src: '{{ cilium_cli_download_dir }}/{{ cilium_cli_filename }}.sha256sum'
   register: cilium_cli_sha256sum
 
 - name: Download Cilium
   ansible.builtin.get_url:
-    url: '{{ cilium_cli_mirror }}/{{ cilium_cli_redis_filename }}'
-    dest: '{{ cilium_cli_download_dir }}/{{ cilium_cli_redis_filename }}'
+    url: '{{ cilium_cli_mirror }}/{{ cilium_cli_filename }}'
+    dest: '{{ cilium_cli_download_dir }}/{{ cilium_cli_filename }}'
     checksum: "sha256:{{ (cilium_cli_sha256sum.content | b64decode).split(' ')[0] | trim }}"
     force: false
     validate_certs: true
@@ -73,7 +73,7 @@
 - name: Install Cilium
   become: true
   ansible.builtin.unarchive:
-    src: '{{ cilium_cli_download_dir }}/{{ cilium_cli_redis_filename }}'
+    src: '{{ cilium_cli_download_dir }}/{{ cilium_cli_filename }}'
     dest: '{{ cilium_cli_install_dir }}'
     owner: root
     group: root

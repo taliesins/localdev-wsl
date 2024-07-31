@@ -1,0 +1,65 @@
+# code: language=ansible
+---
+- name: Create download directory
+  ansible.builtin.file:
+    state: directory
+    mode: 'u=rwx,g=rx,o=rx'
+    dest: '{{ k3d_cli_download_dir }}'
+
+- name: Download K3D
+  ansible.builtin.get_url:
+    url: '{{ k3d_cli_mirror }}/{{ k3d_cli_filename }}'
+    dest: '{{ k3d_cli_download_dir }}/{{ k3d_cli_filename }}'
+    force: false
+    validate_certs: true
+    mode: 'u=rw,g=r,o=r'
+
+- name: Check current version
+  ansible.builtin.command: >-
+    {{ k3d_cli_install_dir }}/k3d --version | head -n 1 | grep -o '{{ k3d_cli_version }}'
+  register: k3d_cli_current_version
+  failed_when: false
+  changed_when: false
+
+- name: Current version
+  ansible.builtin.debug:
+    msg: '{{ k3d_cli_current_version.stdout }}'
+  when: k3d_cli_current_version.rc == 0
+
+- name: Remove existing installation
+  become: true
+  ansible.builtin.file:
+    path: '{{ k3d_cli_install_dir }}'
+    state: absent
+  when:
+    - k3d_cli_current_version.rc == 0
+    - k3d_cli_current_version.stdout != ('v' + k3d_cli_version)
+
+- name: Create the K3D installation dir
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: 'u=rwx,g=rx,o=rx'
+    dest: '{{ k3d_cli_install_dir }}'
+
+- name: Install K3D
+  become: true
+  ansible.builtin.unarchive:
+    src: '{{ k3d_cli_download_dir }}/{{ k3d_cli_filename }}'
+    dest: '{{ k3d_cli_install_dir }}'
+    owner: root
+    group: root
+    mode: 'o-w'
+    creates: '{{ k3d_cli_install_dir }}/k3d'
+
+- name: Create k3d link
+  become: true
+  ansible.builtin.file:
+    src: '{{ k3d_cli_install_dir }}/k3d'
+    dest: '/usr/local/bin/k3d'
+    state: link
+    owner: root
+    group: root
+    mode: 'u=rwx,o=rx,o=rx'

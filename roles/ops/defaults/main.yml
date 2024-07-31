@@ -8,8 +8,8 @@
 kernel_version: "6.10.0"
 kernel_arch: "x86_64"
 kernel_mirror: "https://github.com/taliesins/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-{{ kernel_version }}"
-kernel_modules_redis_filename: "bzImage-{{ kernel_arch }}-modules_install"
-kernel_optional_redis_filename: "bzImage-{{ kernel_arch }}-optional_install"
+kernel_modules_filename: "bzImage-{{ kernel_arch }}-modules_install"
+kernel_optional_filename: "bzImage-{{ kernel_arch }}-optional_install"
 kernel_download_dir: "{{ download_path }}"
 
 ######################################################
@@ -34,7 +34,7 @@ ollama_os: "linux"  # use "darwin" for MacOS X, "windows" for Windows
 # Mirror to download Ollama from
 ollama_mirror: 'https://github.com/ollama/ollama/releases/download/v{{ ollama_version }}'
 
-ollama_redis_filename: "ollama-{{ ollama_os }}-{{ ollama_architecture }}"
+ollama_filename: "ollama-{{ ollama_os }}-{{ ollama_architecture }}"
 
 # Dir where Ollama should be installed
 ollama_install_dir: '/usr/local/share/ollama'
@@ -60,7 +60,7 @@ kubectl_os: "linux"  # use "darwin" for MacOS X, "windows" for Windows
 # Mirror to download Kubectl from
 kubectl_mirror: "https://storage.googleapis.com/kubernetes-release/release/v{{ kubectl_version }}"
 
-kubectl_redis_filename: "kubernetes-client-{{ kubectl_os }}-{{ kubectl_arch }}.tar.gz"
+kubectl_filename: "kubernetes-client-{{ kubectl_os }}-{{ kubectl_arch }}.tar.gz"
 
 # Dir where Kubectl should be installed
 kubectl_install_dir: '/usr/local/share/kubectl'
@@ -84,7 +84,7 @@ helm_os: "linux"  # use "darwin" for MacOS X, "windows" for Windows
 # Mirror to download Helm from
 helm_mirror: 'https://get.helm.sh'
 
-helm_redis_filename: "helm-v{{ helm_version }}-{{ helm_os }}-{{ helm_architecture }}.tar.gz"
+helm_filename: "helm-v{{ helm_version }}-{{ helm_os }}-{{ helm_architecture }}.tar.gz"
 
 # Dir where Helm should be installed
 helm_install_dir: '/usr/local/share/helm'
@@ -108,13 +108,37 @@ cilium_cli_os: "linux"  # use "darwin" for MacOS X, "windows" for Windows
 # Mirror to download Cilium from
 cilium_cli_mirror: 'https://github.com/cilium/cilium-cli/releases/download/v{{ cilium_cli_version }}'
 
-cilium_cli_redis_filename: "cilium-{{ cilium_cli_os }}-{{ cilium_cli_architecture }}.tar.gz"
+cilium_cli_filename: "cilium-{{ cilium_cli_os }}-{{ cilium_cli_architecture }}.tar.gz"
 
 # Dir where Cilium should be installed
 cilium_cli_install_dir: '/usr/local/share/cilium'
 
 # Directory to store files downloaded for Cilium
 cilium_cli_download_dir: "{{ download_path }}"
+
+######################################################
+## K3D CLI
+######################################################
+
+# K3D version number
+k3d_cli_version: '5.7.2'
+
+# The CPU architecture of the K3D executable to install
+k3d_cli_architecture: 'amd64'
+
+# Operating system on which "cilium" should run on
+k3d_cli_os: "linux"  # use "darwin" for MacOS X, "windows" for Windows
+
+# Mirror to download K3D from
+k3d_cli_mirror: 'https://github.com//k3d-io/k3d/releases/download/v{{ k3d_cli_version }}'
+
+k3d_cli_filename: "k3d-{{ k3d_cli_os }}-{{ k3d_cli_architecture }}"
+
+# Dir where K3D should be installed
+k3d_cli_install_dir: '/usr/local/share/k3d'
+
+# Directory to store files downloaded for K3D
+k3d_cli_download_dir: "{{ download_path }}"
 
 ######################################################
 ## microk8s

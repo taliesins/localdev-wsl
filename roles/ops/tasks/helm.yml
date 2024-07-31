@@ -20,8 +20,8 @@
 
 - name: Download sha256sum
   ansible.builtin.get_url:
-    url: '{{ helm_mirror }}/{{ helm_redis_filename }}.sha256'
-    dest: '{{ helm_download_dir }}/{{ helm_redis_filename }}.sha256'
+    url: '{{ helm_mirror }}/{{ helm_filename }}.sha256'
+    dest: '{{ helm_download_dir }}/{{ helm_filename }}.sha256'
     force: false
     use_proxy: true
     validate_certs: true
@@ -29,13 +29,13 @@
 
 - name: Read sha256sum
   ansible.builtin.slurp:
-    src: '{{ helm_download_dir }}/{{ helm_redis_filename }}.sha256'
+    src: '{{ helm_download_dir }}/{{ helm_filename }}.sha256'
   register: helm_sha256sum
 
 - name: Download Helm
   ansible.builtin.get_url:
-    url: '{{ helm_mirror }}/{{ helm_redis_filename }}'
-    dest: '{{ helm_download_dir }}/{{ helm_redis_filename }}'
+    url: '{{ helm_mirror }}/{{ helm_filename }}'
+    dest: '{{ helm_download_dir }}/{{ helm_filename }}'
     checksum: 'sha256:{{ helm_sha256sum.content | b64decode | trim }}'
     force: false
     use_proxy: true
@@ -76,7 +76,7 @@
 - name: Install Helm
   become: true
   ansible.builtin.unarchive:
-    src: '{{ helm_download_dir }}/{{ helm_redis_filename }}'
+    src: '{{ helm_download_dir }}/{{ helm_filename }}'
     remote_src: true
     dest: '{{ helm_install_dir }}'
     extra_opts:
