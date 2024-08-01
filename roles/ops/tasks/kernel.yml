@@ -18,37 +18,11 @@
     mode: 'u=rwx,g=rx,o=rx'
     dest: '{{ kernel_download_dir }}'
 
-- name: Download modules sha256sum
-  ansible.builtin.get_url:
-    url: '{{ kernel_mirror }}/{{ kernel_modules_filename }}.sha256'
-    dest: '{{ kernel_download_dir }}/{{ kernel_modules_filename }}.sha256'
-    force: false
-    validate_certs: true
-    mode: 'u=rw,g=r,o=r'
-    
-- name: Download optional sha256sum
-  ansible.builtin.get_url:
-    url: '{{ kernel_mirror }}/{{ kernel_optional_filename }}.sha256'
-    dest: '{{ kernel_download_dir }}/{{ kernel_optional_filename }}.sha256'
-    force: false
-    validate_certs: true
-    mode: 'u=rw,g=r,o=r'
-
-- name: Read modules sha256sum
-  ansible.builtin.slurp:
-    src: '{{ kernel_download_dir }}/{{ kernel_modules_filename }}.sha256'
-  register: kernel_modules_sha256sum
-
-- name: Read optional sha256sum
-  ansible.builtin.slurp:
-    src: '{{ kernel_download_dir }}/{{ kernel_optional_filename }}.sha256'
-  register: kernel_optional_sha256sum
-
 - name: Download Kernel Modules
   ansible.builtin.get_url:
     url: '{{ kernel_mirror }}/{{ kernel_modules_filename }}.tar.gz'
     dest: '{{ kernel_download_dir }}/{{ kernel_modules_filename }}.tar.gz'
-    checksum: "sha256:{{ (kernel_modules_sha256sum.content | b64decode).split(' ')[0] | trim }}"
+    checksum: "sha256:{{ kernel_mirror }}/{{ kernel_modules_filename }}.sha256"
     force: false
     validate_certs: true
     mode: 'u=rw,g=r,o=r'
@@ -57,7 +31,7 @@
   ansible.builtin.get_url:
     url: '{{ kernel_mirror }}/{{ kernel_optional_filename }}.tar.gz'
     dest: '{{ kernel_download_dir }}/{{ kernel_optional_filename }}.tar.gz'
-    checksum: "sha256:{{ (kernel_optional_sha256sum.content | b64decode).split(' ')[0] | trim }}"
+    checksum: "sha256:{{ kernel_mirror }}/{{ kernel_optional_filename }}.sha256"
     force: false
     validate_certs: true
     mode: 'u=rw,g=r,o=r'

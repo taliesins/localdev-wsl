@@ -18,25 +18,11 @@
     mode: 'u=rwx,g=rx,o=rx'
     dest: '{{ helm_download_dir }}'
 
-- name: Download sha256sum
-  ansible.builtin.get_url:
-    url: '{{ helm_mirror }}/{{ helm_filename }}.sha256'
-    dest: '{{ helm_download_dir }}/{{ helm_filename }}.sha256'
-    force: false
-    use_proxy: true
-    validate_certs: true
-    mode: 'u=rw,g=r,o=r'
-
-- name: Read sha256sum
-  ansible.builtin.slurp:
-    src: '{{ helm_download_dir }}/{{ helm_filename }}.sha256'
-  register: helm_sha256sum
-
 - name: Download Helm
   ansible.builtin.get_url:
     url: '{{ helm_mirror }}/{{ helm_filename }}'
     dest: '{{ helm_download_dir }}/{{ helm_filename }}'
-    checksum: 'sha256:{{ helm_sha256sum.content | b64decode | trim }}'
+    checksum: 'sha256:{{ helm_mirror }}/{{ helm_filename }}.sha256'
     force: false
     use_proxy: true
     validate_certs: true

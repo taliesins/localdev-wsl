@@ -17,6 +17,7 @@ kernel_download_dir: "{{ download_path }}"
 ######################################################
 
 docker_nvidia_test_image: "nvcr.io/nvidia/cuda:12.3.1-base-ubuntu22.04"
+docker_containerd_address: '/var/snap/microk8s/common/run/containerd.sock'
 
 ######################################################
 ## Ollama
@@ -117,6 +118,32 @@ cilium_cli_install_dir: '/usr/local/share/cilium'
 cilium_cli_download_dir: "{{ download_path }}"
 
 ######################################################
+## nerdctl
+######################################################
+
+# NerdCtl version number
+nerdctl_version: '1.7.6'
+
+# The CPU architecture of the NerdCtl executable to install
+nerdctl_architecture: 'amd64'
+
+# Operating system on which "cilium" should run on
+nerdctl_os: "linux"  # use "darwin" for MacOS X, "windows" for Windows
+
+# Mirror to download NerdCtl from
+nerdctl_mirror: 'https://github.com/containerd/nerdctl/releases/download/v{{ nerdctl_version }}'
+
+nerdctl_filename: "nerdctl-{{ nerdctl_version }}-{{ nerdctl_os }}-{{ nerdctl_architecture }}.tar.gz"
+
+# Dir where NerdCtl should be installed
+nerdctl_install_dir: '/usr/local/share/nerdctl'
+
+# Directory to store files downloaded for NerdCtl
+nerdctl_download_dir: "{{ download_path }}"
+
+nerdctl_containerd_address: '/var/snap/microk8s/common/run/containerd.sock'
+
+######################################################
 ## K3D CLI
 ######################################################
 
@@ -130,15 +157,12 @@ k3d_cli_architecture: 'amd64'
 k3d_cli_os: "linux"  # use "darwin" for MacOS X, "windows" for Windows
 
 # Mirror to download K3D from
-k3d_cli_mirror: 'https://github.com//k3d-io/k3d/releases/download/v{{ k3d_cli_version }}'
+k3d_cli_mirror: 'https://github.com/k3d-io/k3d/releases/download/v{{ k3d_cli_version }}'
 
 k3d_cli_filename: "k3d-{{ k3d_cli_os }}-{{ k3d_cli_architecture }}"
 
 # Dir where K3D should be installed
 k3d_cli_install_dir: '/usr/local/share/k3d'
-
-# Directory to store files downloaded for K3D
-k3d_cli_download_dir: "{{ download_path }}"
 
 ######################################################
 ## microk8s

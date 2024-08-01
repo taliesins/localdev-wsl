@@ -1,0 +1,132 @@
+# code: language=ansible
+---
+- name: Install unarchive module dependencies
+  become: true
+  ansible.builtin.apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+    - tar
+    - unzip
+    - gzip
+
+- name: Create download directory
+  ansible.builtin.file:
+    state: directory
+    mode: 'u=rwx,g=rx,o=rx'
+    dest: '{{ nerdctl_download_dir }}'
+
+- name: Download NerdCtl
+  ansible.builtin.get_url:
+    url: '{{ nerdctl_mirror }}/{{ nerdctl_filename }}'
+    dest: '{{ nerdctl_download_dir }}/{{ nerdctl_filename }}'
+    checksum: "sha256:{{ nerdctl_mirror }}/SHA256SUMS"
+    force: false
+    validate_certs: true
+    mode: 'u=rw,g=r,o=r'
+
+- name: Check current version
+  ansible.builtin.command: >-
+    {{ nerdctl_install_dir }}/nerdctl -v | head -n 1 | grep -o '{{ nerdctl_version }}'
+  register: nerdctl_current_version
+  failed_when: false
+  changed_when: false
+
+- name: Current version
+  ansible.builtin.debug:
+    msg: '{{ nerdctl_current_version.stdout }}'
+  when: nerdctl_current_version.rc == 0
+
+- name: Remove existing installation
+  become: true
+  ansible.builtin.file:
+    path: '{{ nerdctl_install_dir }}'
+    state: absent
+  when:
+    - nerdctl_current_version.rc == 0
+    - nerdctl_current_version.stdout != ('v' + nerdctl_version)
+
+- name: Create the NerdCtl installation dir
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: 'u=rwx,g=rx,o=rx'
+    dest: '{{ nerdctl_install_dir }}'
+
+- name: Install NerdCtl
+  become: true
+  ansible.builtin.unarchive:
+    src: '{{ nerdctl_download_dir }}/{{ nerdctl_filename }}'
+    dest: '{{ nerdctl_install_dir }}'
+    owner: root
+    group: root
+    mode: 'o-w'
+    creates: '{{ nerdctl_install_dir }}/nerdctl'
+
+- name: Create nerdctl link
+  become: true
+  ansible.builtin.file:
+    src: '{{ nerdctl_install_dir }}/nerdctl'
+    dest: '/usr/local/bin/nerdctl'
+    state: link
+    owner: root
+    group: root
+    mode: 'u=rwx,o=rx,o=rx'
+
+- name: Create nerdctl config directory
+  become: true
+  ansible.builtin.file:
+    state: directory
+    mode: 'u=rwx,g=rx,o=rx'
+    dest: '/etc/nerdctl'
+    owner: 'root'
+    group: 'root'  
+
+- name: Create nerdctl config directory for root
+  become: true
+  ansible.builtin.file:
+    state: directory
+    mode: 'u=rwx,g=rx,o=rx'
+    dest: '/root/.config/nerdctl'
+    owner: 'root'
+    group: 'root'  
+
+- name: Create nerdctl config directory for user
+  become: true
+  ansible.builtin.file:
+    state: directory
+    mode: 'u=rwx,g=rx,o=rx'
+    dest: '/home/{{ user }}/.config/nerdctl'
+    owner: '{{ user }}'
+    group: '{{ user }}'  
+
+- name: Set nerdctl nerdctl.toml
+  become: true
+  ansible.builtin.template:
+    src: config-nerdctl-nerdctl-toml.j2
+    dest: /etc/nerdctl/nerdctl.toml
+    owner: 'root'
+    group: 'root'    
+    mode: 'u=rw,g=r,o=r'
+
+- name: Set nerdctl nerdctl.toml for root
+  become: true
+  ansible.builtin.template:
+    src: config-nerdctl-nerdctl-toml.j2
+    dest: /root/.config/nerdctl/nerdctl.toml
+    owner: 'root'
+    group: 'root'    
+    mode: 'u=rw,g=r,o=r'
+
+- name: Set nerdctl nerdctl.toml for user
+  become: true
+  ansible.builtin.template:
+    src: config-nerdctl-nerdctl-toml.j2
+    dest: /home/{{ user }}/.config/nerdctl/nerdctl.toml
+    owner: '{{ user }}'
+    group: '{{ user }}'    
+    mode: 'u=rw,g=r,o=r'

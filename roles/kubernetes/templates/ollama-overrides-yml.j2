@@ -23,6 +23,10 @@ runtimeClassName: "nvidia"
 ingress:
   enabled: true
   hosts:
+  - host: ollama.{{ ollama_tld }}
+    paths:
+      - path: /
+        pathType: Prefix  
   - host: ollama.ollama.{{ ollama_cluster_name }}.{{ ollama_tld }}
     paths:
       - path: /

@@ -35,25 +35,11 @@
     mode: 'u=rwx,g=rx,o=rx'
     dest: '{{ kubectl_download_dir }}'
 
-- name: Download sha256sum
-  ansible.builtin.get_url:
-    url: '{{ kubectl_mirror }}/{{ kubectl_filename }}.sha256'
-    dest: '{{ kubectl_download_dir }}/{{ kubectl_filename }}.sha256'
-    force: false
-    use_proxy: true
-    validate_certs: true
-    mode: 'u=rw,g=r,o=r'
-
-- name: Read sha256sum
-  ansible.builtin.slurp:
-    src: '{{ kubectl_download_dir }}/{{ kubectl_filename }}.sha256'
-  register: kubectl_sha256sum
-
 - name: Download Kubectl
   ansible.builtin.get_url:
     url: '{{ kubectl_mirror }}/{{ kubectl_filename }}'
     dest: '{{ kubectl_download_dir }}/{{ kubectl_filename }}'
-    checksum: 'sha256:{{ kubectl_sha256sum.content | b64decode | trim }}'
+    checksum: 'sha256:{{ kubectl_mirror }}/{{ kubectl_filename }}.sha256'
     force: false
     use_proxy: true
     validate_certs: true

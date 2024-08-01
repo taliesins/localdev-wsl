@@ -5,6 +5,9 @@ service:
 ingress:
   enabled: true
   hosts:
+  - host: whoami.{{ whoami_tld }}
+    paths:
+      - /  
   - host: whoami.whoami.{{ whoami_cluster_name }}.{{ whoami_tld }}
     paths:
       - /

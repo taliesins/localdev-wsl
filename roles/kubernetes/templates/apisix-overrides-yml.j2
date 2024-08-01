@@ -35,6 +35,9 @@ dashboard:
   ingress:
     enabled: true
     hosts:
+    - host: apisix.{{ apisix_tld }}
+      paths:
+        - /    
     - host: apisix.apisix.{{ apisix_cluster_name }}.{{ apisix_tld }}
       paths:
         - /

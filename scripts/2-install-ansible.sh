@@ -1,5 +1,7 @@
 #!/bin/bash
-set -e
+
+set -euo pipefail
+
 sudo add-apt-repository --yes --update ppa:ansible/ansible
 sudo apt update
 sudo apt upgrade -y

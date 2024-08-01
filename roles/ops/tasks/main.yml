@@ -4,8 +4,6 @@
   ansible.builtin.include_tasks: kernel.yml
 - name: Bpf
   ansible.builtin.include_tasks: bpf.yml
-- name: Docker
-  ansible.builtin.include_tasks: docker.yml
 - name: Cuda Toolkit
   ansible.builtin.include_tasks: cuda-toolkit.yml
 - name: Nvidia Container Toolkit
@@ -18,7 +16,15 @@
   ansible.builtin.include_tasks: helm.yml
 - name: Cilium CLI
   ansible.builtin.include_tasks: cilium-cli.yml
+- name: K3D CLI
+  ansible.builtin.include_tasks: k3d-cli.yml
 - name: MicroK8S
   ansible.builtin.include_tasks: microk8s.yml
+- name: Docker
+  ansible.builtin.include_tasks: docker.yml
+- name: NerdCtl
+  ansible.builtin.include_tasks: nerdctl.yml
+- name: Test Nvidia GPU
+  ansible.builtin.include_tasks: test-nvidia-gpu.yml 
 - name: MetalLB-Fix
   ansible.builtin.include_tasks: metallb-fix.yml

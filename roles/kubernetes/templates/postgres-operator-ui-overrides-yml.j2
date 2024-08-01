@@ -5,6 +5,9 @@ service:
 ingress:
   enabled: true
   hosts:
+  - host: postgres.{{ postgres_operator_ui_tld }}
+    paths:
+      - /  
   - host: postgres.postgres.{{ postgres_operator_ui_cluster_name }}.{{ postgres_operator_ui_tld }}
     paths:
       - /

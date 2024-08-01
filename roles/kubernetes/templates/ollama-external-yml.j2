@@ -39,7 +39,7 @@ metadata:
   namespace: ollama  
 spec:
   rules:
-  - host: ollama.ollama.{{ ollama_cluster_name }}.{{ ollama_tld }}
+  - host: ollama.{{ ollama_tld }}
     http:
       paths:
       - pathType: Prefix
@@ -49,4 +49,14 @@ spec:
             name: ollama
             port:
               number: 80
+  - host: ollama.ollama.{{ ollama_cluster_name }}.{{ ollama_tld }}
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: ollama
+            port:
+              number: 80              
 ---

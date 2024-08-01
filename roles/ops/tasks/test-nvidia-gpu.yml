@@ -1,0 +1,35 @@
+
+
+- name: Check NVidia can be reached from Docker
+  become: true
+  docker_container:
+    name: docker-nvidia-gpu-test
+    image: "{{ docker_nvidia_test_image }}"
+    command: nvidia-smi
+    auto_remove: true
+    detach: false
+    runtime: nvidia
+    device_requests:
+      - count: -1  # all
+        capabilities:
+        - gpu
+  when: use_nvidia|default(false)|bool
+
+- name: Check NVidia can be reached from Kubernetes
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.k8s:
+    namespace: default
+    state: present
+    src: "{{ microk8s_kubernetes_nvidia_test_yml }}"
+    wait: yes
+  when: use_nvidia|default(false)|bool
+
+- name: Kubernetes NVidia Test Yml
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: kubernetes-nvidia-test-yml.j2
+    dest: "{{ microk8s_kubernetes_nvidia_test_yml }}"
+    mode: 'u=rw,g=r,o=r'
+  when: use_nvidia|default(false)|bool

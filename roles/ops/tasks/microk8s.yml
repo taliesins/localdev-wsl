@@ -128,7 +128,7 @@
     path: /var/snap/microk8s/current/args/containerd-template.toml
     regexp: 'runtimes\.nvidia-container-runtime'
     replace: 'runtimes.nvidia'
-  when: use_nvidia|default(false)|bool
+  when: changed_default_runtime_name.changed
 
 - name: Stop microk8s
   become: true
@@ -140,6 +140,16 @@
     - microk8s_stop_status_out.rc > 0
   when: changed_default_runtime_name.changed
   
+- name: Wait for MicroK8s to stop
+  become: true
+  ansible.builtin.command: |
+    microk8s status
+  register: microk8s_status_stopped
+  until: microk8s_status_stopped.stdout.find('microk8s is not running') != -1
+  retries: 30
+  delay: 10
+  when: changed_default_runtime_name.changed
+
 - name: Start microk8s
   become: true
   ansible.builtin.command: |
@@ -158,22 +168,3 @@
   failed_when:
       - microk8s_wait_for_ready_status_out.rc > 0
   when: changed_default_runtime_name.changed
-
-- name: Kubernetes NVidia Test Yml
-  become: true
-  become_user: '{{ user }}'
-  ansible.builtin.template:
-    src: kubernetes-nvidia-test-yml.j2
-    dest: "{{ microk8s_kubernetes_nvidia_test_yml }}"
-    mode: 'u=rw,g=r,o=r'
-  when: use_nvidia|default(false)|bool
-
-- name: Check NVidia can be reached from Kubernetes
-  become: true
-  become_user: '{{ user }}'
-  kubernetes.core.k8s:
-    namespace: default
-    state: present
-    src: "{{ microk8s_kubernetes_nvidia_test_yml }}"
-    wait: yes
-  when: use_nvidia|default(false)|bool

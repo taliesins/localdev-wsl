@@ -26,27 +26,26 @@
   when: use_nvidia|default(false)|bool
   register: install_nvidia_container_toolkit_result
 
-- name: Restart Docker service
-  become: true
-  ansible.builtin.service:
-    name: docker
-    state: restarted
-  when: use_nvidia|default(false)|bool
-  changed_when: install_nvidia_container_toolkit_result.changed
-  
-- name: Check NVidia can be reached from Docker
-  become: true
-  docker_container: 
-    name: docker-nvidia-gpu-test
-    image: "{{ docker_nvidia_test_image }}"
-    command: nvidia-smi
-    auto_remove: true
-    detach: false
-    runtime: nvidia
-    device_requests:
-      - count: -1  # all
-        capabilities:
-        - gpu
-  when: use_nvidia|default(false)|bool
-  changed_when: install_nvidia_container_toolkit_result.changed
-  
+# - name: Restart Docker service
+#   become: true
+#   ansible.builtin.service:
+#     name: docker
+#     state: restarted
+#   when: use_nvidia|default(false)|bool
+#   changed_when: install_nvidia_container_toolkit_result.changed
+
+# - name: Check NVidia can be reached from Docker
+#   become: true
+#   docker_container:
+#     name: docker-nvidia-gpu-test
+#     image: "{{ docker_nvidia_test_image }}"
+#     command: nvidia-smi
+#     auto_remove: true
+#     detach: false
+#     runtime: nvidia
+#     device_requests:
+#       - count: -1  # all
+#         capabilities:
+#         - gpu
+#   when: use_nvidia|default(false)|bool
+#   changed_when: install_nvidia_container_toolkit_result.changed

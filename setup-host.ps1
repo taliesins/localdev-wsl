@@ -29,10 +29,11 @@ function Enable-WindowsFeature {
 
 $WslDistribution = "Ubuntu-22.04"
 $WslDistributionInstallerName = "ubuntu2204"
-$WslInstanceName = "Ubuntu-22.04"
 
 $WslKernelVersion = '6.10.0'
 $WslKernelPath = 'c:\data\wsl2'
+
+$WslUsername = 'taliesins'
 
 $NatNetwork = '10.152.0.0/16'
 $NatGatewayIpAddress = '10.152.0.1'
@@ -48,23 +49,24 @@ $env:WSL_UTF8 = "1"
 wsl --shutdown
 wsl --update
 wsl --set-default-version 2
-$foundInstance = $(wsl -l | % { $_.Replace("`0", "") } | ? { $_ -match "^$($WslInstanceName)" })
+$foundInstance = $(wsl -l | % { $_.Replace("`0", "") } | ? { $_ -match "^$($WslDistribution)" })
 if (!$foundInstance) {
     wsl --list --online
     wsl --install $WslDistribution --no-launch
     & "$($env:LOCALAPPDATA)\Microsoft\WindowsApps\$($WslDistributionInstallerName)" install --root
-    wsl --install -d $WslInstanceName
 }
-wsl --setdefault $WslInstanceName
+wsl --setdefault $WslDistribution
 wsl --shutdown
 
 #Download custom kernel
 $customKernelPath = "$($WslKernelPath)\bzImage-x86_64"
-$url = "https://github.com/taliesins/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-$($WslKernelVersion)/bzImage-x86_64"
-New-Item -Path $WslKernelPath -ItemType Directory -Force
-$webClient = New-Object System.Net.WebClient
-$webClient.DownloadFile($url, $customKernelPath)
-$webClient.Dispose()
+if (!(Test-Path $customKernelPath)) {
+    $url = "https://github.com/taliesins/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-$($WslKernelVersion)/bzImage-x86_64"
+    New-Item -Path $WslKernelPath -ItemType Directory -Force
+    $webClient = New-Object System.Net.WebClient
+    $webClient.DownloadFile($url, $customKernelPath)
+    $webClient.Dispose()
+}
 
 #Configure wsl network options
 $RegistryPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss'
@@ -74,7 +76,7 @@ if (!$CurrentNatNetwork -or $CurrentNatNetwork -ne $NatNetwork) {
 }
 
 $CurrentNatGatewayIpAddress = Get-RegistryItemValue -KeyPath $RegistryPath -ItemName 'NatGatewayIpAddress'
-if (!CurrentNatGatewayIpAddress -or $CurrentNatGatewayIpAddress -ne $NatGatewayIpAddress) {
+if (!$CurrentNatGatewayIpAddress -or $CurrentNatGatewayIpAddress -ne $NatGatewayIpAddress) {
     New-ItemProperty -Path $RegistryPath -Name 'NatGatewayIpAddress' -Value $NatGatewayIpAddress -PropertyType String -Force
 }
 
@@ -124,25 +126,25 @@ if (Test-Path "$nvidiaLibPath\libcuda.so.1.1") {
 #     New-Item -Path "$env:windir\System32\DriverStore\FileRepository\nv_dispig.inf_amd64_2fe7c165c5dd3267\libdxcore.so" -ItemType SymbolicLink -Value "$nvidiaLibPath\libdxcore.so"
 # }
 
-# Copy scripts over
-$windowsCwdPath = Split-Path -Parent $PSCommandPath
+# Update the system
+#wsl -d $WslDistribution -u root bash -ic "whoami"
+
+# create your user and add it to sudoers
+wsl -d $WslDistribution -u root bash -ic "./scripts/1-create-user.sh '$WslUsername'"
+wsl --shutdown
+
+# Update the system
+wsl -d $WslDistribution -u $WslUsername bash -c "./scripts/2-install-ansible.sh"
+
 $windowsSshPath = "$($env:USERPROFILE)\.ssh"
-$copyFilesOverScript = (Get-Content -Raw ./1-copy-files.sh).Replace("`$windows_cwd_path", $windowsCwdPath.Replace("\", "\\")).Replace("`$windows_ssh_path", $windowsSshPath.Replace("\", "\\"))
-wsl bash -c ($copyFilesOverScript -replace '"', '\"')
-
-#Install Ansible
-wsl bash -c "`$HOME/localdev-wsl-scripts/2-install-ansible.sh"
-
-#Setup Ansible solution
-$GitRepoUri = $(git config --get remote.origin.url)
-if (!$GitRepoUri) {
-    $GitRepoUri = 'https://github.com/taliesins/localdev-wsl.git'
+$gitRepoUri = $(git config --get remote.origin.url)
+if (!$gitRepoUri) {
+    $gitRepoUri = 'https://github.com/taliesins/localdev-wsl.git'
 }
 
-wsl bash -c "sed -i 's/`\`$git_repo_uri/$($GitRepoUri.Replace('/', '\\\\\\/'))/g' `$HOME/localdev-wsl-scripts/3-install-ansible-solution.sh"
-wsl bash -c "sed -i 's/`\`$nat_network/$($NatNetwork.Replace('/', '\\\\\\/'))/g' `$HOME/localdev-wsl-scripts/3-install-ansible-solution.sh"
-wsl bash -c "sed -i 's/`\`$nat_ip_address/$($NatIpAddress.Replace('/', '\\\\\\/'))/g' `$HOME/localdev-wsl-scripts/3-install-ansible-solution.sh"
-wsl bash -c "`$HOME/localdev-wsl-scripts/3-install-ansible-solution.sh"
+wsl -d $WslDistribution -u $WslUsername bash -ic "./scripts/3-install-ansible-solution.sh '$windowsSshPath' '$gitRepoUri' '$NatNetwork' '$NatIpAddress' "
 
-#Run Ansible solution
-wsl bash -c '$HOME/localdev-wsl-scripts/4-run-ansible-solution.sh'
+wsl -d $WslDistribution -u $WslUsername bash -c "./scripts/4-run-ansible-solution.sh "
+
+# ensure WSL Distro is restarted when first used with user account
+#wsl -t $WslDistribution

@@ -89,7 +89,7 @@
     packages:
     - docker-ce
     - docker-ce-cli
-    - containerd.io
+    #- containerd.io
 
 - name: Create Docker configuration directory
   become: true
@@ -122,20 +122,28 @@
   ansible.builtin.replace:
     path:  /usr/lib/systemd/system/docker.service
     regexp: ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
-    replace: ExecStart=/usr/bin/dockerd --containerd=/run/containerd/containerd.sock
-  register: update_docker_service_result
+    replace: ExecStart=/usr/bin/dockerd --containerd={{ docker_containerd_address }}
+  register: update_docker_service_use_containerd_socket_result
+
+- name: Update Docker service to switch containerd service
+  become: true
+  ansible.builtin.replace:
+    path:  /usr/lib/systemd/system/docker.service
+    regexp: containerd.service
+    replace: snap.microk8s.daemon-containerd.service
+  register: update_docker_service_use_microk8s_containerd_service_result  
 
 - name: Reload systemd
   become: true
   ansible.builtin.command: systemctl daemon-reload
-  when: update_docker_service_result.changed
+  when: update_docker_service_use_containerd_socket_result.changed or update_docker_service_use_microk8s_containerd_service_result.changed
 
 - name: Restart Docker service
   become: true
   ansible.builtin.service:
     name: docker
     state: restarted
-  when: update_docker_service_result.changed or update_docker_config_result.changed
+  when: update_docker_service_use_containerd_socket_result.changed or update_docker_service_use_microk8s_containerd_service_result.changed or update_docker_config_result.changed
 
 - name: Start Docker service
   become: true
@@ -143,7 +151,15 @@
     name: docker
     state: started
     enabled: true
-  when: not update_docker_service_result.changed and not update_docker_config_result.changed
+  when: not (update_docker_service_use_containerd_socket_result.changed or update_docker_service_use_microk8s_containerd_service_result.changed) and not update_docker_config_result.changed
+
+- name: Stop ContainerD service
+  become: true
+  ansible.builtin.service:
+    name: containerd
+    state: stopped
+    enabled: false
+  when: update_docker_service_use_microk8s_containerd_service_result.changed
 
 - name: Set Docker group members
   become: true
