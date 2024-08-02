@@ -2,18 +2,17 @@
 
 Setup local wsl instance for development
 
-## Install WSL instance
+## Setup WSL instance
 
-Run `setup-host.ps1`
+Run `1-setup-wsl.ps1`
 
 This script will update the WSL engine, download a custom kernel, configure WSL network options and fix nvidia driver linking issues. Then it will install Docker, MicroK8S and then will configure Kubernetes.
 
-During setup you will be asked interactively to set:
-* Username
-* Password
-* Password confirmation
-* Once instance is setup type `exit<enter>` to continue installation
-* Become password
+## Setup local instance
+
+Run `2-setup-local.ps1`
+
+This script will download Docker CLI, Docker Compose and Docker BuildX. It will configure Docker CLI to use Docker running on WSL. It will setup and configure Unbound to wildcard dns domains to ingress running in Kubernetes on WSL.
 
 ## Uninstall WSL instance
 
