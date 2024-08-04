@@ -1,0 +1,21 @@
+storageSpec:
+  volumeClaimTemplate:
+    spec:
+      # storageClassName: standard
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: {{ redis_volume_size }}
+  #   selector: {}
+
+redisStandalone:
+  # redisSecret:
+  #   secretName: ""
+  #   secretKey: ""
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi

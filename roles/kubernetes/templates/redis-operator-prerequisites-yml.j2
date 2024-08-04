@@ -1,0 +1,15 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: redis-operator-webhook-tls
+spec:
+  dnsNames:
+    - redis-cluster.redis-operator.svc.cluster.local
+    - redis-cluster.redis-operator.svc
+    - redis-cluster
+  issuerRef:
+    name: cert-manager-ca
+    kind: ClusterIssuer
+    group: cert-manager.io
+  secretName: redis-operator-webhook-tls

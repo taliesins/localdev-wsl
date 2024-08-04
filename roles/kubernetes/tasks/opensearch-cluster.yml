@@ -1,0 +1,32 @@
+# code: language=ansible
+---
+# https://github.com/opensearch-project/opensearch-k8s-operator/blob/main/charts/opensearch-cluster/Chart.yaml
+
+- name: OpenSearch Cluster Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: opensearch-cluster-overrides-yml.j2
+    dest: "{{ opensearch_cluster_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add OpenSearch Cluster chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: opensearch-cluster
+    repo_url: "https://opensearch-project.github.io/opensearch-k8s-operator/"
+
+- name: Deploy OpenSearch Cluster helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: opensearch-cluster
+    release_namespace: opensearch-cluster
+    chart_ref: opensearch-cluster/opensearch-cluster
+    chart_version: 2.6.0
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ opensearch_cluster_helm_overrides }}"

@@ -1,4 +1,13 @@
-namespace: ""
 replicas: 1
-service:
-  type: LoadBalancer
+redisOperator:
+  webhook: true
+certificate:
+  name: redis-operator-webhook-tls
+  secretName: redis-operator-webhook-tls
+resources:
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limits:
+    cpu: 400m
+    memory: 500Mi

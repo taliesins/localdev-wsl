@@ -1,0 +1,49 @@
+opensearchCluster:
+  enabled: true
+#  bootstrap:
+#    Configure settings for the bootstrap pod
+  general:
+    httpPort: "9200"
+    version: 2.3.0
+    serviceName: {{ opensearch_cluster_name }}
+    drainDataNodes: true
+    setVMMaxMapCount: true
+#    securityContext:
+#       Specify container security context for OpenSearch pods
+#    podSecurityContext:
+#       Specify pod security context for OpenSearch pods
+  dashboards:
+    enable: true
+    replicas: 1
+    version: 2.3.0
+#        securityContext:
+#           Specify container security context for OSD pods
+#        podSecurityContext:
+#           Specify pod security context for OSD pods
+    resources:
+      requests:
+        cpu: 100m
+        memory: 100Mi
+      limits:
+        cpu: 400m
+        memory: 500Mi
+  nodePools:
+    - component: masters
+      diskSize: {{ opensearch_cluster_volume_size }}
+      replicas: {{ opensearch_cluster_instances }}
+      roles:
+        - "master"
+        - "data"
+      resources:
+        requests:
+          cpu: 100m
+          memory: 100Mi
+        limits:
+          cpu: 400m
+          memory: 500Mi
+  security:
+    tls:
+      transport:
+        generate: true
+      http:
+        generate: true

@@ -151,8 +151,32 @@ postgres_cluster_databases: |
 ######################################################
 
 redis_operator_helm_overrides: "{{ download_path }}/redis-operator-overrides.yml"
-redis_operator_ui_cluster_name: "{{ cluster_name }}"
-redis_operator_ui_tld: "{{ tld }}"
+redis_operator_prerequisites_yml: "{{ download_path }}/redis-operator-prerequisites.yml"
+
+######################################################
+## Redis
+######################################################
+
+redis_yml: "{{ download_path }}/redis.yml"
+
+redis_name: redis
+redis_volume_size: 1Gi
+
+######################################################
+## RabbitMQ Cluster Operator
+######################################################
+
+rabbitmq_cluster_operator_helm_overrides: "{{ download_path }}/rabbitmq-cluster-operator-overrides.yml"
+
+######################################################
+## RabbitMQ Cluster
+######################################################
+
+rabbitmq_cluster_yml: "{{ download_path }}/rabbitmq-cluster.yml"
+
+rabbitmq_cluster_name: rabbitmq-cluster
+rabbitmq_cluster_volume_size: 1Gi
+rabbitmq_cluster_instances: 1
 
 ######################################################
 ## OpenSearch Operator
@@ -162,6 +186,16 @@ opensearch_operator_helm_overrides: "{{ download_path }}/opensearch-operator-ove
 opensearch_operator_ui_cluster_name: "{{ cluster_name }}"
 opensearch_operator_ui_tld: "{{ tld }}"
 opensearch_load_balancer_ip: "{{ kubernetes_external_network_ipv4_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('8') | ansible.utils.ipaddr('address') }}"
+
+######################################################
+## OpenSearch Cluster
+######################################################
+
+opensearch_cluster_helm_overrides: "{{ download_path }}/opensearch-cluster.yml"
+
+opensearch_cluster_name: opensearch-cluster
+opensearch_cluster_volume_size: 1Gi
+opensearch_cluster_instances: 1
 
 ######################################################
 ## Ollama

@@ -1,5 +1,7 @@
 # code: language=ansible
 ---
+#https://github.com/opensearch-project/opensearch-k8s-operator/blob/main/charts/opensearch-cluster/templates/opensearch-cluster-cr.yaml
+#https://github.com/opensearch-project/opensearch-k8s-operator/blob/main/charts/opensearch-operator/Chart.yaml
 - name: OpenSearch Operator Helm Overrides
   become: true
   become_user: '{{ user }}'

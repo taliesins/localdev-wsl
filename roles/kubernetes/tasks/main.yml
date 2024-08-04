@@ -28,8 +28,16 @@
   ansible.builtin.include_tasks: postgres-cluster.yml
 - name: Redis Operator
   ansible.builtin.include_tasks: redis-operator.yml
+- name: Redis
+  ansible.builtin.include_tasks: redis.yml
+- name: RabbitMQ Cluster Operator
+  ansible.builtin.include_tasks: rabbitmq-cluster-operator.yml
+- name: RabbitMQ Cluster
+  ansible.builtin.include_tasks: rabbitmq-cluster.yml
 - name: OpenSearch Operator
   ansible.builtin.include_tasks: opensearch-operator.yml
+- name: OpenSearch Cluster
+  ansible.builtin.include_tasks: opensearch-cluster.yml
 - name: Ollama
   ansible.builtin.include_tasks: ollama.yml
 - name: Open WebUI

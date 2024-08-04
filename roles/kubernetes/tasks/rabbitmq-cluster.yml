@@ -1,0 +1,27 @@
+# code: language=ansible
+---
+#https://github.com/rabbitmq/cluster-operator/blob/main/docs/examples/production-ready/rabbitmq.yaml
+
+- name: RabbitMQ Cluster Yaml
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: rabbitmq-cluster-yml.j2
+    dest: "{{ rabbitmq_cluster_yml }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Create RabbitMQ Cluster namespace
+  kubernetes.core.k8s:
+    name: rabbitmq-cluster
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Deploy RabbitMQ Cluster
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.k8s:
+    namespace: rabbitmq-cluster
+    state: present
+    src: "{{ rabbitmq_cluster_yml }}"
+    wait: yes

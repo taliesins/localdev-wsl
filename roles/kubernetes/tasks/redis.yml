@@ -1,0 +1,31 @@
+# code: language=ansible
+---
+#https://github.com/OT-CONTAINER-KIT/redis/blob/master/charts/redis/Chart.yaml
+- name: Redis Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: redis-overrides-yml.j2
+    dest: "{{ redis_operator_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add Redis chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: redis
+    repo_url: "https://ot-container-kit.github.io/helm-charts"
+
+- name: Deploy Redis helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: redis
+    release_namespace: redis
+    chart_ref: redis/redis
+    chart_version: 0.16.0
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ redis_operator_helm_overrides }}"
