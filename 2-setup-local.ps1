@@ -193,6 +193,14 @@ if ($primaryAdapter) {
 
 $ingressServer = "10.152.255.3"
 
+$privateDomains = @(
+    "local"
+)
+
+$insecureDomains = @(
+    "local"
+)
+
 $wildcardForwarders = @(
     @{DomainName="k8s.lan.talifun.com.";Ipv4Addresses=@($ingressServer);},
     @{DomainName="local.";Ipv4Addresses=@($ingressServer);}
@@ -247,8 +255,22 @@ server:
 	private-address: 172.16.0.0/12
 	private-address: 192.168.0.0/16
 	private-address: 100.64.0.0/10
-	private-domain: "local"
-    domain-insecure: "local"
+    $(
+        foreach ($privateDomain in $privateDomains) {
+@"
+
+    private-domain: "$($privateDomain)"
+"@
+        }
+)      
+$(
+        foreach ($insecureDomain in $insecureDomains) {
+@"
+
+    domain-insecure: "$($insecureDomain)"
+"@
+        }
+)    
 
 # remote-control:
 	# If you want to use unbound-control.exe from the command line, use
