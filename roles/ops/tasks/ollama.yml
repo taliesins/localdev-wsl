@@ -67,10 +67,26 @@
   become: true
   ansible.builtin.get_url:
     url: '{{ ollama_mirror }}/{{ ollama_filename }}'
-    dest: '{{ ollama_install_dir }}/ollama'
+    dest: '{{ ollama_download_dir }}/{{ ollama_filename }}'
     force: false
     validate_certs: true
     mode: 'u=rw,g=r,o=r'
+    
+- name: Install Ollama
+  become: true
+  ansible.builtin.unarchive:
+    src: '{{ ollama_download_dir }}/{{ ollama_filename }}'
+    remote_src: true
+    dest: '{{ ollama_install_dir }}'
+    extra_opts:
+      - '--strip-components=2'
+      - '--wildcards'
+      - '--no-anchored'
+      - 'bin/ollama'
+    owner: root
+    group: root
+    mode: 'o-w'
+    creates: '{{ ollama_install_dir }}/ollama'
 
 - name: Create ollama link
   become: true

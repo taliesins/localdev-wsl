@@ -24,7 +24,7 @@ docker_containerd_address: '/var/snap/microk8s/common/run/containerd.sock'
 ######################################################
 
 # Ollama version number
-ollama_version: '0.2.7'
+ollama_version: '0.3.9'
 
 # The CPU architecture of the Ollama executable to install
 ollama_architecture: 'amd64'
@@ -35,7 +35,7 @@ ollama_os: "linux"  # use "darwin" for MacOS X, "windows" for Windows
 # Mirror to download Ollama from
 ollama_mirror: 'https://github.com/ollama/ollama/releases/download/v{{ ollama_version }}'
 
-ollama_filename: "ollama-{{ ollama_os }}-{{ ollama_architecture }}"
+ollama_filename: "ollama-{{ ollama_os }}-{{ ollama_architecture }}.tgz"
 
 # Dir where Ollama should be installed
 ollama_install_dir: '/usr/local/share/ollama'
@@ -50,7 +50,7 @@ ollama_host: "0.0.0.0:11434"
 ######################################################
 
 # "kubectl" version to install
-kubectl_version: "1.30.3"
+kubectl_version: "1.31.0"
 
 # Processor architecture "kubectl" should run on
 kubectl_arch: "amd64"  # other possible values: "386","arm64","arm","ppc64le","s390x"
@@ -74,7 +74,7 @@ kubectl_download_dir: "{{ download_path }}"
 ######################################################
 
 # Helm version number
-helm_version: '3.15.3'
+helm_version: '3.15.4'
 
 # The CPU architecture of the Helm executable to install
 helm_architecture: 'amd64'
@@ -148,7 +148,7 @@ nerdctl_containerd_address: '/var/snap/microk8s/common/run/containerd.sock'
 ######################################################
 
 # K3D version number
-k3d_cli_version: '5.7.2'
+k3d_cli_version: '5.7.3'
 
 # The CPU architecture of the K3D executable to install
 k3d_cli_architecture: 'amd64'
@@ -168,7 +168,7 @@ k3d_cli_install_dir: '/usr/local/share/k3d'
 ## microk8s
 ######################################################
 
-microk8s_version: "1.30"
+microk8s_version: "1.31"
 
 microk8s_channel: "{{ microk8s_version }}/stable"
 
