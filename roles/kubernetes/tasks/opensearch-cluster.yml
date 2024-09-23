@@ -24,7 +24,7 @@
     name: opensearch-cluster
     release_namespace: opensearch-cluster
     chart_ref: opensearch-cluster/opensearch-cluster
-    chart_version: 2.6.0
+    chart_version: 2.6.1
     create_namespace: true
     update_repo_cache: true
     wait: true

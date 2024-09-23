@@ -22,7 +22,7 @@
     name: nfs-csi
     release_namespace: nfs-csi
     chart_ref: nfs-csi/csi-driver-nfs
-    chart_version: v4.8.0
+    chart_version: v4.9.0
     create_namespace: true
     update_repo_cache: true
     wait: true

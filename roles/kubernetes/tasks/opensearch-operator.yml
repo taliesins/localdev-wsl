@@ -24,7 +24,7 @@
     name: opensearch-operator
     release_namespace: opensearch-operator
     chart_ref: opensearch-operator/opensearch-operator
-    chart_version: 2.6.0
+    chart_version: 2.6.1
     create_namespace: true
     update_repo_cache: true
     wait: true

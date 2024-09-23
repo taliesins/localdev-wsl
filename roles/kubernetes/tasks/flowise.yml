@@ -22,7 +22,7 @@
     name: flowise
     release_namespace: flowise
     chart_ref: flowise/flowise
-    chart_version: 3.6.2
+    chart_version: 3.8.0
     create_namespace: true
     update_repo_cache: true
     wait: true

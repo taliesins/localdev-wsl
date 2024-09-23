@@ -22,7 +22,7 @@
     name: smb-csi
     release_namespace: smb-csi
     chart_ref: smb-csi/csi-driver-smb
-    chart_version: v1.15.0
+    chart_version: v1.16.0
     create_namespace: true
     update_repo_cache: true
     wait: true

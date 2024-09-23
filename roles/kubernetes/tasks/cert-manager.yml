@@ -22,7 +22,7 @@
     name: cert-manager
     release_namespace: cert-manager
     chart_ref: cert-manager/cert-manager
-    chart_version: v1.15.1
+    chart_version: v1.15.3
     create_namespace: true
     update_repo_cache: true
     wait: true
