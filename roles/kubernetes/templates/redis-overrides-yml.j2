@@ -9,9 +9,9 @@ storageSpec:
   #   selector: {}
 
 redisStandalone:
-  # redisSecret:
-  #   secretName: ""
-  #   secretKey: ""
+  redisSecret:
+    secretName: "{{ redis_name }}-secret"
+    secretKey: "password"
   resources:
     requests:
       cpu: 100m

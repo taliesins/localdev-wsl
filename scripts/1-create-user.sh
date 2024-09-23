@@ -82,6 +82,12 @@ default=${USERNAME}
 systemd=true
 EOT
   fi
+
+  if [[ ! -f /etc/profile.d/02-shared-root.sh ]]; then
+    sudo tee /etc/profile.d/02-shared-root.sh > /dev/null <<EOT
+sudo mount --make-rshared /
+EOT
+  fi
 }
 
 setUserName "${1-""}"

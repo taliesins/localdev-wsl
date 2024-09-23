@@ -20,13 +20,13 @@ opensearchCluster:
 #           Specify container security context for OSD pods
 #        podSecurityContext:
 #           Specify pod security context for OSD pods
-    resources:
-      requests:
-        cpu: 100m
-        memory: 100Mi
-      limits:
-        cpu: 400m
-        memory: 500Mi
+#    resources:
+#      requests:
+#        cpu: 100m
+#        memory: 250Mi
+#      limits:
+#        cpu: 400m
+#        memory: 2000Mi
   nodePools:
     - component: masters
       diskSize: {{ opensearch_cluster_volume_size }}
@@ -34,13 +34,13 @@ opensearchCluster:
       roles:
         - "master"
         - "data"
-      resources:
-        requests:
-          cpu: 100m
-          memory: 100Mi
-        limits:
-          cpu: 400m
-          memory: 500Mi
+#      resources:
+#        requests:
+#          cpu: 100m
+#          memory: 100Mi
+#        limits:
+#          cpu: 400m
+#          memory: 2000Mi
   security:
     tls:
       transport:

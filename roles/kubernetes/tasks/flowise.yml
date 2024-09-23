@@ -26,5 +26,7 @@
     create_namespace: true
     update_repo_cache: true
     wait: true
+    set_values:
+      - value: image.tag=2.0.2
     values_files:
       - "{{ flowise_helm_overrides }}"
