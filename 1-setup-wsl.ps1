@@ -58,33 +58,33 @@ $NatIpAddress = '10.152.0.5'
 # wsl --setdefault $WslDistribution
 # wsl --shutdown
 
-# #Download custom kernel
-# $customKernelPath = "$($WslKernelPath)\bzImage-x86_64"
-# if (!(Test-Path $customKernelPath)) {
-#     $url = "https://github.com/taliesins/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-$($WslKernelVersion)/bzImage-x86_64"
-#     New-Item -Path $WslKernelPath -ItemType Directory -Force
-#     $webClient = New-Object System.Net.WebClient
-#     $webClient.DownloadFile($url, $customKernelPath)
-#     $webClient.Dispose()
-# }
+#Download custom kernel
+$customKernelPath = "$($WslKernelPath)\bzImage-x86_64"
+if (!(Test-Path $customKernelPath)) {
+    $url = "https://github.com/taliesins/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-$($WslKernelVersion)/bzImage-x86_64"
+    New-Item -Path $WslKernelPath -ItemType Directory -Force
+    $webClient = New-Object System.Net.WebClient
+    $webClient.DownloadFile($url, $customKernelPath)
+    $webClient.Dispose()
+}
 
-# #Configure wsl network options
-# $RegistryPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss'
-# $CurrentNatNetwork = Get-RegistryItemValue -KeyPath $RegistryPath -ItemName 'NatNetwork'
-# if (!$CurrentNatNetwork -or $CurrentNatNetwork -ne $NatNetwork) {
-#     New-ItemProperty -Path $RegistryPath -Name 'NatNetwork' -Value $NatNetwork -PropertyType String -Force
-# }
+#Configure wsl network options
+$RegistryPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss'
+$CurrentNatNetwork = Get-RegistryItemValue -KeyPath $RegistryPath -ItemName 'NatNetwork'
+if (!$CurrentNatNetwork -or $CurrentNatNetwork -ne $NatNetwork) {
+    New-ItemProperty -Path $RegistryPath -Name 'NatNetwork' -Value $NatNetwork -PropertyType String -Force
+}
 
-# $CurrentNatGatewayIpAddress = Get-RegistryItemValue -KeyPath $RegistryPath -ItemName 'NatGatewayIpAddress'
-# if (!$CurrentNatGatewayIpAddress -or $CurrentNatGatewayIpAddress -ne $NatGatewayIpAddress) {
-#     New-ItemProperty -Path $RegistryPath -Name 'NatGatewayIpAddress' -Value $NatGatewayIpAddress -PropertyType String -Force
-# }
+$CurrentNatGatewayIpAddress = Get-RegistryItemValue -KeyPath $RegistryPath -ItemName 'NatGatewayIpAddress'
+if (!$CurrentNatGatewayIpAddress -or $CurrentNatGatewayIpAddress -ne $NatGatewayIpAddress) {
+    New-ItemProperty -Path $RegistryPath -Name 'NatGatewayIpAddress' -Value $NatGatewayIpAddress -PropertyType String -Force
+}
 
-# $RegistryPath = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss'
-# $CurrentNatIpAddress = Get-RegistryItemValue -KeyPath $RegistryPath -ItemName 'NatIpAddress'
-# if (!$CurrentNatIpAddress -or $CurrentNatIpAddress -ne $NatIpAddress) {
-#     New-ItemProperty -Path $RegistryPath -Name 'NatIpAddress' -Value $NatIpAddress -PropertyType String -Force
-# }
+$RegistryPath = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss'
+$CurrentNatIpAddress = Get-RegistryItemValue -KeyPath $RegistryPath -ItemName 'NatIpAddress'
+if (!$CurrentNatIpAddress -or $CurrentNatIpAddress -ne $NatIpAddress) {
+    New-ItemProperty -Path $RegistryPath -Name 'NatIpAddress' -Value $NatIpAddress -PropertyType String -Force
+}
 
 # # Configure wsl options
 # $memory = (Get-CimInstance Win32_PhysicalMemory | Measure-Object -Property capacity -Sum).sum / 1gb
@@ -130,11 +130,11 @@ $NatIpAddress = '10.152.0.5'
 # #wsl -d $WslDistribution -u root bash -ic "whoami"
 
 # # create your user and add it to sudoers
-# wsl -d $WslDistribution -u root bash -ic "./scripts/1-create-user.sh '$WslUsername'"
-# wsl --shutdown
+wsl -d $WslDistribution -u root bash -ic "./scripts/1-create-user.sh '$WslUsername'"
+wsl --shutdown
 
 # # Update the system
-# wsl -d $WslDistribution -u $WslUsername bash -c "./scripts/2-install-ansible.sh"
+wsl -d $WslDistribution -u $WslUsername bash -c "./scripts/2-install-ansible.sh"
 
 $windowsSshPath = "$($env:USERPROFILE)\.ssh"
 $gitRepoUri = $(git config --get remote.origin.url)

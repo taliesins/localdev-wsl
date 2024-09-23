@@ -1,0 +1,32 @@
+# code: language=ansible
+---
+- name: N8N Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: n8n-overrides-yml.j2
+    dest: "{{ n8n_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add N8N chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: n8n
+    repo_url: "https://8gears.container-registry.com/chartrepo/library"
+
+- name: Deploy N8N helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: n8n
+    release_namespace: n8n
+    chart_ref: n8n/n8n
+    chart_version: 0.24.4
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    set_values:
+      - value: image.tag=1.53.2
+    values_files:
+      - "{{ n8n_helm_overrides }}"

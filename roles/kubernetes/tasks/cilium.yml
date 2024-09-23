@@ -22,7 +22,7 @@
     name: cilium
     release_namespace: cilium
     chart_ref: cilium/cilium
-    chart_version: v1.16.0-rc.2
+    chart_version: v1.16.1
     create_namespace: true
     update_repo_cache: true
     wait: true

@@ -1,0 +1,32 @@
+# code: language=ansible
+---
+- name: Node Red Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: node-red-overrides-yml.j2
+    dest: "{{ node_red_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add Node Red chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: node-red
+    repo_url: "https://schwarzit.github.io/node-red-chart/"
+
+- name: Deploy Node Red helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: node-red
+    release_namespace: node-red
+    chart_ref: node-red/node-red
+    chart_version: 0.32.1
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    set_values:
+      - value: image.tag=latest-22
+    values_files:
+      - "{{ node_red_helm_overrides }}"

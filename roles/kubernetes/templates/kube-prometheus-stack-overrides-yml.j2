@@ -1,0 +1,47 @@
+alertmanager:
+  ingress:
+    enabled: true
+    hosts:
+      - alertmanager.{{ kube_prometheus_stack_tld }}
+      - alertmanager.kube-prometheus-stack.{{ kube_prometheus_stack_cluster_name }}.{{ kube_prometheus_stack_tld }}    
+    paths:
+      - /
+    pathType: ImplementationSpecific
+
+grafana:
+  ingress:
+    enabled: true
+    hosts:
+      - grafana.{{ kube_prometheus_stack_tld }}
+      - grafana.kube-prometheus-stack.{{ kube_prometheus_stack_cluster_name }}.{{ kube_prometheus_stack_tld }}    
+    paths:
+      - /
+    pathType: ImplementationSpecific
+
+prometheus:
+  thanosIngress:
+    enabled: true
+    hosts:
+      - thanos-gateway.{{ kube_prometheus_stack_tld }}
+      - thanos-gateway.kube-prometheus-stack.{{ kube_prometheus_stack_cluster_name }}.{{ kube_prometheus_stack_tld }}
+    paths:
+      - /
+    pathType: ImplementationSpecific
+  ingress:
+    enabled: true
+    hosts:
+      - prometheus.{{ kube_prometheus_stack_tld }}
+      - prometheus.kube-prometheus-stack.{{ kube_prometheus_stack_cluster_name }}.{{ kube_prometheus_stack_tld }}
+    paths:
+      - /
+    pathType: ImplementationSpecific
+
+thanosRuler:
+  ingress:
+    enabled: true
+    hosts:
+      - thanosruler.{{ kube_prometheus_stack_tld }}
+      - thanosruler.kube-prometheus-stack.{{ kube_prometheus_stack_cluster_name }}.{{ kube_prometheus_stack_tld }}
+    paths:
+      - /
+    pathType: ImplementationSpecific

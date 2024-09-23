@@ -1,0 +1,136 @@
+service:
+  type: LoadBalancer
+  loadBalancerIP: {{ n8n_load_balancer_ip }}
+
+ingress:
+  enabled: true
+  hosts:
+  - host: n8n.{{ n8n_tld }}
+    paths:
+      - /
+  - host: n8n.n8n.{{ n8n_cluster_name }}.{{ n8n_tld }}
+    paths:
+      - /
+
+persistence:
+  enabled: true
+  type: emptyDir
+  accessModes:
+    - ReadWriteOnce
+  size: {{ n8n_volume_size }}
+
+replicaCount: {{ n8n_instances }}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+config:
+  database:
+    type: postgresdb
+    tablePrefix: ''
+    postgresdb:
+      database: {{ postgres_cluster_n8n_database_name }}
+      host: {{ postgres_cluster_name }}.postgres-cluster
+      port: 5432
+      user: {{ postgres_cluster_n8n_database_username }}
+      schema: public
+      ssl:
+        ca: ''             # SSL certificate authority - default: ''
+        cert: ''           # SSL certificate - default: ''
+        key: ''            # SSL key - default: ''
+        rejectUnauthorized: true
+  executions:
+    process: own                    # In what process workflows should be executed - possible values [main, own] - default: own
+    timeout: 900                    # Max run time (seconds) before stopping the workflow execution - default: -1
+    maxTimeout: 3600                # Max execution time (seconds) that can be set for a workflow individually - default: 3600
+    saveDataOnError: all            # What workflow execution data to save on error - possible values [all , none] - default: all
+    saveDataOnSuccess: all          # What workflow execution data to save on success - possible values [all , none] - default: all
+    saveDataManualExecutions: false # Save data of executions when started manually via editor - default: false
+    pruneData: false                # Delete data of past executions on a rolling basis - default: false
+    pruneDataMaxAge: 336            # How old (hours) the execution data has to be to get deleted - default: 336
+    pruneDataTimeout: 3600          # Timeout (seconds) after execution data has been pruned - default: 3600
+  generic:
+    timezone: 'Europe/London'       # The timezone to use - default: America/New_York
+  path: /                           # Path n8n is deployed to - default: "/"
+  host: localhost                   # Host name n8n can be reached - default: localhost
+  port: 5678                        # HTTP port n8n can be reached - default: 5678
+  listen_address: 0.0.0.0           # IP address n8n should listen on - default: 0.0.0.0
+  protocol: http                    # HTTP Protocol via which n8n can be reached - possible values [http , https] - default: http
+  ssl_key: ''                       # SSL Key for HTTPS Protocol - default: ''
+  ssl_cert: ''                      # SSL Cert for HTTPS Protocol - default: ''
+  security:
+    excludeEndpoints: ''        # Additional endpoints to exclude auth checks. Multiple endpoints can be separated by colon - default: ''
+    basicAuth:
+      active: false             # If basic auth should be activated for editor and REST-API - default: false
+      user: ''                  # The name of the basic auth user - default: ''
+      password: ''              # The password of the basic auth user - default: ''
+      hash: false               # If password for basic auth is hashed - default: false
+    jwtAuth:
+      active: false             # If JWT auth should be activated for editor and REST-API - default: false
+      jwtHeader: ''             # The request header containing a signed JWT - default: ''
+      jwtHeaderValuePrefix: ''  # The request header value prefix to strip (optional) default: ''
+      jwksUri: ''               # The URI to fetch JWK Set for JWT authentication - default: ''
+      jwtIssuer: ''             # JWT issuer to expect (optional) - default: ''
+      jwtNamespace: ''          # JWT namespace to expect (optional) -  default: ''
+      jwtAllowedTenantKey: ''   # JWT tenant key name to inspect within JWT namespace (optional) - default: ''
+      jwtAllowedTenant: ''      # JWT tenant to allow (optional) - default: ''
+  endpoints:
+    rest: rest                  # Path for rest endpoint  default: rest
+    webhook: webhook            # Path for webhook endpoint  default: webhook
+    webhookTest: webhook-test   # Path for test-webhook endpoint  default: webhook-test
+  externalHookFiles:  # Files containing external hooks. Multiple files can be separated by colon - default: ''
+  nodes:
+    exclude: []                                   # Nodes not to load - default: "[]"
+    errorTriggerType: n8n-nodes-base.errorTrigger # Node Type to use as Error Trigger - default: n8n-nodes-base.errorTrigger
+
+secret:
+  database:
+    postgresdb:
+      password: {{ postgres_cluster_n8n_database_username }}.{{ postgres_cluster_name }}.credentials.postgresql.acid.zalan.do
+
+# Set additional environment variables on the Deployment
+extraEnv: {}
+# Set this if running behind a reverse proxy and the external port is different from the port n8n runs on
+#   WEBHOOK_URL: "https://n8n.myhost.com/
+
+# Set additional environment from existing secrets
+extraEnvSecrets: {}
+# for example, to reuse existing postgres authentication secrets:
+#   DB_POSTGRESDB_USER:
+#     name: postgres-user-auth
+#     key: username
+#   DB_POSTGRESDB_PASSWORD:
+#     name: postgres-user-auth
+#     key: password
+
+# here you can specify lifecycle hooks - it can be used e.g to easily add packages to the container without building
+# your own docker image
+# see https://github.com/8gears/n8n-helm-chart/pull/30
+lifecycle:
+  {}
+
+#  here's the sample configuration to add mysql-client to the container
+# lifecycle:
+#  postStart:
+#    exec:
+#      command: ["/bin/sh", "-c", "apk add mysql-client"]
+
+scaling:
+  enabled: false
+
+  worker:
+    count: 2
+    concurrency: 2
+  # With .Values.scaling.webhook.enabled=true you disable Webhooks from the main process but you enable the processing on a different Webhook instance.
+  # See https://github.com/8gears/n8n-helm-chart/issues/39#issuecomment-1579991754 for the full explanation.
+  webhook:
+    enabled: false
+    count: 1
+
+  redis:
+    host: {{ redis_name }}.redis
+    password: ''

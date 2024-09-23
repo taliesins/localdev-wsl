@@ -237,7 +237,7 @@ ollama_cluster_name: "{{ cluster_name }}"
 ollama_tld: "{{ tld }}"
 ollama_gpu_enabled: "false"
 ollama_number_of_gpus: "1"
-ollama_default_model: "llama2"
+ollama_default_model: "llama3.1"
 
 ######################################################
 ## Open WebUI

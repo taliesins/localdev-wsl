@@ -1,0 +1,30 @@
+# code: language=ansible
+---
+- name: Temporal Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: temporal-overrides-yml.j2
+    dest: "{{ temporal_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add Temporal chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: temporal
+    repo_url: "https://go.temporal.io/helm-charts"
+
+- name: Deploy Temporal helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: temporal
+    release_namespace: temporal
+    chart_ref: temporal/temporal
+    chart_version: 0.44.0
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ temporal_helm_overrides }}"

@@ -1,0 +1,63 @@
+server:
+  frontend:
+    ingress:
+      enabled: true
+      hosts:
+        - "temporal-api.{{ temporal_tld }}/"
+        - "temporal-api.temporal.{{ temporal_cluster_name }}.{{ temporal_tld }}/"
+  config:
+    persistence:
+      default:
+        driver: "sql"
+
+        sql:
+          driver: "postgres12"
+          host: {{ postgres_cluster_name }}.postgres-cluster
+          port: 5432
+          database: {{ postgres_cluster_temporal_database_name }}
+          user: {{ postgres_cluster_temporal_database_username }}
+          existingSecret: {{ postgres_cluster_temporal_database_username }}.{{ postgres_cluster_name }}.credentials.postgresql.acid.zalan.do
+          maxConns: 20
+          maxConnLifetime: "1h"
+          # tls:
+          #  enabled: true
+          #  enableHostVerification: true
+          #  serverName: _HOST_ # this is strictly required when using serverless CRDB offerings
+          #  caFile: /path/to/certs/<CA-file> # Here we assumed that caFile, certFile, keyFile are stored in one secret mounted as 'secret-with-certs' (see: server.additionalVolumes and server.additionalVolumeMounts sections).
+          #  certFile: /path/to/certs/<client-cert-file>
+          #  keyFile: /path/to/certs/<client-key-file>
+
+      visibility:
+        driver: "sql"
+
+        sql:
+          driver: "postgres12"
+          host: {{ postgres_cluster_name }}.postgres-cluster
+          port: 5432
+          database: {{ postgres_cluster_temporal_visibility_database_name }}
+          user: {{ postgres_cluster_temporal_visibility_database_username }}
+          existingSecret: {{ postgres_cluster_temporal_visibility_database_username }}.{{ postgres_cluster_name }}.credentials.postgresql.acid.zalan.do
+          maxConns: 20
+          maxConnLifetime: "1h"
+          # tls:
+          #  enabled: true
+          #  enableHostVerification: true
+          #  serverName: _HOST_ # this is strictly required when using serverless CRDB offerings
+          #  caFile: /path/to/certs/<CA-file> # Here we assumed that caFile, certFile, keyFile are stored in one secret mounted as 'secret-with-certs' (see: server.additionalVolumes and server.additionalVolumeMounts sections).
+          #  certFile: /path/to/certs/<client-cert-file>
+          #  keyFile: /path/to/certs/<client-key-file>
+web:
+  ingress:
+    enabled: true
+    hosts:
+      - "temporal.{{ temporal_tld }}/"
+      - "temporal.temporal.{{ temporal_cluster_name }}.{{ temporal_tld }}/"
+
+elasticsearch:
+  enabled: false
+
+prometheus:
+  enabled: true
+
+grafana:
+  enabled: true

@@ -1,0 +1,16 @@
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: {{ node_red_volume_size }}
+
+ingress:
+  enabled: true
+  hosts:
+    - host: node-red.{{ node_red_tld }}
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+    - host: node-red.node-red.{{ node_red_cluster_name }}.{{ node_red_tld }}
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
