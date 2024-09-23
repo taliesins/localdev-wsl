@@ -30,7 +30,7 @@
     name: k8s-gateway-primary
     release_namespace: k8s-gateway-primary
     chart_ref: k8s-gateway/k8s-gateway
-    chart_version: 2.4.0
+    chart_version: "{{ k8s_gateway_helm_version }}"
     create_namespace: true
     update_repo_cache: true
     wait: true
@@ -44,7 +44,7 @@
     name: k8s-gateway-secondary
     release_namespace: k8s-gateway-secondary
     chart_ref: k8s-gateway/k8s-gateway
-    chart_version: 2.1.0
+    chart_version: "{{ k8s_gateway_helm_version }}"
     create_namespace: true
     update_repo_cache: true
     wait: true

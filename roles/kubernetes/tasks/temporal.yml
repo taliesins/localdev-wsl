@@ -22,7 +22,7 @@
     name: temporal
     release_namespace: temporal
     chart_ref: temporal/temporal
-    chart_version: 0.44.0
+    chart_version: "{{ temporal_helm_version }}"
     create_namespace: true
     update_repo_cache: true
     wait: true

@@ -22,11 +22,11 @@
     name: flowise
     release_namespace: flowise
     chart_ref: flowise/flowise
-    chart_version: 3.8.0
+    chart_version: "{{ flowise_helm_version }}"
     create_namespace: true
     update_repo_cache: true
     wait: true
     set_values:
-      - value: image.tag=2.0.2
+      - value: image.tag={{ flowise_helm_image_tag }}
     values_files:
       - "{{ flowise_helm_overrides }}"

@@ -22,11 +22,11 @@
     name: node-red
     release_namespace: node-red
     chart_ref: node-red/node-red
-    chart_version: 0.32.1
+    chart_version: "{{ node_red_helm_version }}"
     create_namespace: true
     update_repo_cache: true
     wait: true
     set_values:
-      - value: image.tag=latest-22
+      - value: image.tag={{ node_red_helm_image_tag }}
     values_files:
       - "{{ node_red_helm_overrides }}"

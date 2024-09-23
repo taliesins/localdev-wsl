@@ -22,7 +22,7 @@
     name: coredns
     release_namespace: coredns
     chart_ref: coredns/coredns
-    chart_version: 1.32.0
+    chart_version: "{{ coredns_helm_version }}"
     create_namespace: true
     update_repo_cache: true
     wait: true

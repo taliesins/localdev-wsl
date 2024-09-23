@@ -23,7 +23,7 @@
     name: rabbitmq-cluster-operator
     release_namespace: rabbitmq-cluster-operator
     chart_ref: rabbitmq-cluster-operator/rabbitmq-cluster-operator
-    chart_version: 4.3.21
+    chart_version: "{{ rabbitmq_cluster_operator_helm_version }}"
     create_namespace: true
     update_repo_cache: true
     wait: true

@@ -22,7 +22,7 @@
     name: n8n
     release_namespace: n8n
     chart_ref: n8n/n8n
-    chart_version: 0.24.4
+    chart_version: "{{ n8n_helm_values }}"
     create_namespace: true
     update_repo_cache: true
     wait: true

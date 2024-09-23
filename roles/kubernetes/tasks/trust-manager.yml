@@ -22,7 +22,7 @@
     name: trust-manager
     release_namespace: trust-manager
     chart_ref: cert-manager/trust-manager
-    chart_version: v0.9.0
+    chart_version: "{{ trust_manager_helm_version }}"
     create_namespace: true
     update_repo_cache: true
     wait: true

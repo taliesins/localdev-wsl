@@ -30,7 +30,7 @@
     name: traefik
     release_namespace: traefik
     chart_ref: traefik/traefik
-    chart_version: 29.0.1
+    chart_version: "{{ traefik_helm_version }}"
     create_namespace: true
     update_repo_cache: true
     wait: true

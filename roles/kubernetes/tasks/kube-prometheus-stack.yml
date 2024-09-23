@@ -22,7 +22,7 @@
     name: kube-prometheus-stack
     release_namespace: kube-prometheus-stack
     chart_ref: kube-prometheus-stack/kube-prometheus-stack
-    chart_version: 61.7.2
+    chart_version: "{{ kube_prometheus_stack_helm_version }}"
     create_namespace: true
     update_repo_cache: true
     wait: true

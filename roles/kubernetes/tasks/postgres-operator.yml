@@ -23,7 +23,7 @@
     name: postgres-operator
     release_namespace: postgres-operator
     chart_ref: postgres-operator/postgres-operator
-    chart_version: 1.13.0
+    chart_version: "{{ postgres_operator_helm_version }}"
     create_namespace: true
     update_repo_cache: true
     wait: true

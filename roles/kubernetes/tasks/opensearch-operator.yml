@@ -24,7 +24,7 @@
     name: opensearch-operator
     release_namespace: opensearch-operator
     chart_ref: opensearch-operator/opensearch-operator
-    chart_version: 2.6.1
+    chart_version: "{{ opensearch_operator_helm_version }}"
     create_namespace: true
     update_repo_cache: true
     wait: true

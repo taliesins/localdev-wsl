@@ -47,9 +47,9 @@
     name: redis
     release_namespace: redis
     chart_ref: redis/redis
-    chart_version: 0.16.0
+    chart_version: "{{ redis_helm_version }}"
     create_namespace: true
     update_repo_cache: true
     wait: true
     values_files:
-      - "{{ redis_operator_helm_overrides }}"
+      - "{{ redis_helm_overrides }}"

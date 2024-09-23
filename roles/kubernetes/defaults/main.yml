@@ -5,6 +5,7 @@
 ## Cilium
 ######################################################
 
+cilium_helm_version: "v1.16.1"
 cilium_helm_overrides: "{{ download_path }}/cilium-overrides.yml"
 
 ######################################################
@@ -18,6 +19,7 @@ host_path_provider_pv_dir: /var/snap/microk8s/common/default-storage
 ## CoreDns
 ######################################################
 
+coredns_helm_version: "1.32.0"
 coredns_helm_overrides: "{{ download_path }}/coredns-overrides.yml"
 
 coredns_cluster_name: "{{ cluster_name }}"
@@ -32,6 +34,7 @@ coredns_upstream_dnsserver: "dns://{{ wsl_host_dns_ipv4_ip }}:53"
 ## K8S Gateway
 ######################################################
 
+k8s_gateway_helm_version: "2.4.0"
 k8s_gateway_primary_helm_overrides: "{{ download_path }}/external-dns-primary-overrides.yml"
 k8s_gateway_secondary_helm_overrides: "{{ download_path }}/external-dns-secondary-overrides.yml"
 
@@ -49,18 +52,21 @@ k8s_gateway_external_secondary_dns_ipv6: "{{ kubernetes_external_network_ipv6_ci
 ## NFS CSI
 ######################################################
 
+nfs_csi_helm_version: "v4.9.0"
 nfs_csi_helm_overrides: "{{ download_path }}/nfs-csi-overrides.yml"
 
 ######################################################
 ## SMB CSI
 ######################################################
 
+smb_csi_helm_value: "v1.16.0"
 smb_csi_helm_overrides: "{{ download_path }}/smb-csi-overrides.yml"
 
 ######################################################
 ## Traefik
 ######################################################
 
+traefik_helm_version: "29.0.1"
 traefik_helm_overrides: "{{ download_path }}/traefik-overrides.yml"
 traefik_dashboard_yml: "{{ download_path }}/traefik-dashboard.yml"
 
@@ -75,6 +81,7 @@ traefik_trusted_ips: "127.0.0.1/32,{{ wsl_host_network_ipv4_cidr }}"
 ## ApiSix
 ######################################################
 
+apisix_helm_version: "2.8.1"
 apisix_helm_overrides: "{{ download_path }}/apisix-overrides.yml"
 apisix_cluster_name: "{{ cluster_name }}"
 apisix_tld: "{{ tld }}"
@@ -87,6 +94,7 @@ apisix_ingress_ipv6: "{{ kubernetes_external_network_ipv6_cidr | ansible.utils.i
 ## Cert Manager
 ######################################################
 
+cert_manager_helm_version: "v1.15.3"
 cert_manager_helm_overrides: "{{ download_path }}/cert-manager-overrides.yml"
 cert_manager_crds_yml: "{{ download_path }}/cert-manager-crds.yml"
 
@@ -94,6 +102,7 @@ cert_manager_crds_yml: "{{ download_path }}/cert-manager-crds.yml"
 ## Trust Manager
 ######################################################
 
+trust_manager_helm_version: "v0.9.0"
 trust_manager_helm_overrides: "{{ download_path }}/trust-manager-overrides.yml"
 trust_manager_crds_yml: "{{ download_path }}/trust-manager-crds.yml"
 
@@ -101,12 +110,14 @@ trust_manager_crds_yml: "{{ download_path }}/trust-manager-crds.yml"
 ## Metrics Server
 ######################################################
 
+metrics_server_helm_version: "v3.12.1"
 metrics_server_helm_overrides: "{{ download_path }}/metrics-server-overrides.yml"
 
 ######################################################
 ## Kube Prometheus Stack
 ######################################################
 
+kube_prometheus_stack_helm_version: "61.7.2"
 kube_prometheus_stack_helm_overrides: "{{ download_path }}/kube-prometheus-stack-overrides.yml"
 kube_prometheus_stack_cluster_name: "{{ cluster_name }}"
 kube_prometheus_stack_tld: "{{ tld }}"
@@ -115,6 +126,7 @@ kube_prometheus_stack_tld: "{{ tld }}"
 ## WhoAmI
 ######################################################
 
+whoami_helm_version: "5.1.1"
 whoami_helm_overrides: "{{ download_path }}/whoami-overrides.yml"
 whoami_cluster_name: "{{ cluster_name }}"
 whoami_tld: "{{ tld }}"
@@ -124,12 +136,14 @@ whoami_load_balancer_ip: "{{ kubernetes_external_network_ipv4_cidr | ansible.uti
 ## Postgres Operator
 ######################################################
 
+postgres_operator_helm_version: "1.13.0"
 postgres_operator_helm_overrides: "{{ download_path }}/postgres-operator-overrides.yml"
 
 ######################################################
 ## Postgres Operator UI
 ######################################################
 
+postgres_operator_ui_helm_version: "1.13.0"
 postgres_operator_ui_helm_overrides: "{{ download_path }}/postgres-operator-ui-overrides.yml"
 postgres_operator_ui_cluster_name: "{{ cluster_name }}"
 postgres_operator_ui_tld: "{{ tld }}"
@@ -179,12 +193,14 @@ postgres_cluster_databases: |
 ######################################################
 
 redis_operator_prerequisites_yml: "{{ download_path }}/redis-operator-prerequisites.yml"
+redis_operator_helm_version: "0.18.1"
 redis_operator_helm_overrides: "{{ download_path }}/redis-operator-overrides.yml"
 
 ######################################################
 ## Redis
 ######################################################
 
+redis_helm_version: "0.16.0"
 redis_prerequisites_yml: "{{ download_path }}/redis-prerequisites.yml"
 redis_yml: "{{ download_path }}/redis.yml"
 redis_password: "redis_P@ssw0rd"
@@ -195,6 +211,7 @@ redis_volume_size: 1Gi
 ## RabbitMQ Cluster Operator
 ######################################################
 
+rabbitmq_cluster_operator_helm_version: "4.3.21"
 rabbitmq_cluster_operator_helm_overrides: "{{ download_path }}/rabbitmq-cluster-operator-overrides.yml"
 
 ######################################################
@@ -211,6 +228,7 @@ rabbitmq_cluster_instances: 1
 ## OpenSearch Operator
 ######################################################
 
+opensearch_operator_helm_version: "2.6.1"
 opensearch_operator_helm_overrides: "{{ download_path }}/opensearch-operator-overrides.yml"
 opensearch_operator_ui_cluster_name: "{{ cluster_name }}"
 opensearch_operator_ui_tld: "{{ tld }}"
@@ -219,7 +237,7 @@ opensearch_load_balancer_ip: "{{ kubernetes_external_network_ipv4_cidr | ansible
 ######################################################
 ## OpenSearch Cluster
 ######################################################
-
+opensearch_cluster_helm_version: "2.6.1"
 opensearch_cluster_helm_overrides: "{{ download_path }}/opensearch-cluster.yml"
 
 opensearch_cluster_name: opensearch-cluster
@@ -232,6 +250,7 @@ opensearch_cluster_instances: 1
 
 ollama_use_external_service: true
 ollama_external_yml: "{{ download_path }}/ollama-external.yml"
+ollama_helm_version: "0.51.0"
 ollama_helm_overrides: "{{ download_path }}/ollama-overrides.yml"
 ollama_cluster_name: "{{ cluster_name }}"
 ollama_tld: "{{ tld }}"
@@ -253,6 +272,8 @@ open_webui_tld: "{{ tld }}"
 ## Flowise
 ######################################################
 
+flowise_helm_version: "3.8.0"
+flowise_helm_image_tag: "2.1.1"
 flowise_helm_overrides: "{{ download_path }}/flowise-overrides.yml"
 flowise_cluster_name: "{{ cluster_name }}"
 flowise_tld: "{{ tld }}"
@@ -262,6 +283,7 @@ flowise_load_balancer_ip: "{{ kubernetes_external_network_ipv4_cidr | ansible.ut
 ## N8N
 ######################################################
 
+n8n_helm_values: "0.24.4"
 n8n_helm_overrides: "{{ download_path }}/n8n-overrides.yml"
 n8n_cluster_name: "{{ cluster_name }}"
 n8n_tld: "{{ tld }}"
@@ -272,7 +294,8 @@ n8n_instances: 1
 ######################################################
 ## Node Red
 ######################################################
-
+node_red_helm_version: "0.32.1"
+node_red_helm_image_tag: "latest-22"
 node_red_helm_overrides: "{{ download_path }}/node-red-overrides.yml"
 node_red_cluster_name: "{{ cluster_name }}"
 node_red_tld: "{{ tld }}"
@@ -282,6 +305,7 @@ node_red_volume_size: 1Gi
 ## Temporal
 ######################################################
 
+temporal_helm_version: "0.44.0"
 temporal_helm_overrides: "{{ download_path }}/temporal-overrides.yml"
 temporal_cluster_name: "{{ cluster_name }}"
 temporal_tld: "{{ tld }}"
