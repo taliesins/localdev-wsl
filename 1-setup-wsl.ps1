@@ -30,7 +30,7 @@ function Enable-WindowsFeature {
 $WslDistribution = "Ubuntu-22.04"
 $WslDistributionInstallerName = "ubuntu2204"
 
-$WslKernelVersion = '6.10.7'
+$WslKernelVersion = '6.11.0'
 $WslKernelPath = 'c:\data\wsl2'
 
 $WslUsername = 'taliesins'

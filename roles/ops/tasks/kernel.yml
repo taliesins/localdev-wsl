@@ -22,7 +22,7 @@
   ansible.builtin.get_url:
     url: '{{ kernel_mirror }}/{{ kernel_modules_filename }}.tar.gz'
     dest: '{{ kernel_download_dir }}/{{ kernel_modules_filename }}.tar.gz'
-    checksum: "sha256:{{ kernel_mirror }}/{{ kernel_modules_filename }}.sha256"
+    #checksum: "sha256:{{ kernel_mirror }}/{{ kernel_modules_filename }}.sha256"
     force: false
     validate_certs: true
     mode: 'u=rw,g=r,o=r'
@@ -31,7 +31,7 @@
   ansible.builtin.get_url:
     url: '{{ kernel_mirror }}/{{ kernel_optional_filename }}.tar.gz'
     dest: '{{ kernel_download_dir }}/{{ kernel_optional_filename }}.tar.gz'
-    checksum: "sha256:{{ kernel_mirror }}/{{ kernel_optional_filename }}.sha256"
+    #checksum: "sha256:{{ kernel_mirror }}/{{ kernel_optional_filename }}.sha256"
     force: false
     validate_certs: true
     mode: 'u=rw,g=r,o=r'

@@ -5,7 +5,7 @@
 ## Custom Kernel
 ######################################################
 
-kernel_version: "6.10.0"
+kernel_version: "6.11.0"
 kernel_arch: "x86_64"
 kernel_mirror: "https://github.com/taliesins/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-{{ kernel_version }}"
 kernel_modules_filename: "bzImage-{{ kernel_arch }}-modules_install"
