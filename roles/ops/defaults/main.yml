@@ -5,7 +5,7 @@
 ## Custom Kernel
 ######################################################
 
-kernel_version: "6.10.10"
+kernel_version: "6.11.5"
 kernel_arch: "x86_64"
 kernel_mirror: "https://github.com/taliesins/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-{{ kernel_version }}"
 kernel_modules_filename: "bzImage-{{ kernel_arch }}-modules_install"
@@ -24,7 +24,7 @@ docker_containerd_address: '/var/snap/microk8s/common/run/containerd.sock'
 ######################################################
 
 # Ollama version number
-ollama_version: '0.3.11'
+ollama_version: '0.4.0-rc5'
 
 # The CPU architecture of the Ollama executable to install
 ollama_architecture: 'amd64'
@@ -50,7 +50,7 @@ ollama_host: "0.0.0.0:11434"
 ######################################################
 
 # "kubectl" version to install
-kubectl_version: "1.31.1"
+kubectl_version: "1.31.0"
 
 # Processor architecture "kubectl" should run on
 kubectl_arch: "amd64"  # other possible values: "386","arm64","arm","ppc64le","s390x"

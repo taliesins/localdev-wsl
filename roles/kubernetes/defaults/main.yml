@@ -193,7 +193,8 @@ postgres_cluster_databases: |
 ######################################################
 
 redis_operator_prerequisites_yml: "{{ download_path }}/redis-operator-prerequisites.yml"
-redis_operator_helm_version: "0.18.1"
+redis_operator_helm_version: "0.16.0"
+redis_operator_helm_image_tag: "v0.18.0"
 redis_operator_helm_overrides: "{{ download_path }}/redis-operator-overrides.yml"
 
 ######################################################
@@ -201,8 +202,9 @@ redis_operator_helm_overrides: "{{ download_path }}/redis-operator-overrides.yml
 ######################################################
 
 redis_helm_version: "0.16.0"
+redis_helm_image_tag: "v7.0.15"
 redis_prerequisites_yml: "{{ download_path }}/redis-prerequisites.yml"
-redis_yml: "{{ download_path }}/redis.yml"
+redis_helm_overrides: "{{ download_path }}/redis-overrides.yml"
 redis_password: "redis_P@ssw0rd"
 redis_name: redis
 redis_volume_size: 1Gi
@@ -267,6 +269,15 @@ open_webui_repo_version: v0.1.121
 open_webui_helm_overrides: "{{ download_path }}/open-webui-overrides.yml"
 open_webui_cluster_name: "{{ cluster_name }}"
 open_webui_tld: "{{ tld }}"
+
+######################################################
+## Qdrant
+######################################################
+
+qdrant_helm_version: "1.12.1"
+qdrant_helm_overrides: "{{ download_path }}/qdrant-overrides.yml"
+qdrant_cluster_name: "{{ cluster_name }}"
+qdrant_tld: "{{ tld }}"
 
 ######################################################
 ## Flowise

@@ -30,7 +30,7 @@
   become_user: '{{ user }}'
   ansible.builtin.template:
     src: redis-overrides-yml.j2
-    dest: "{{ redis_operator_helm_overrides }}"
+    dest: "{{ redis_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
 
 - name: Add Redis chart repo
@@ -51,5 +51,7 @@
     create_namespace: true
     update_repo_cache: true
     wait: true
+    set_values:
+      - value: redisStandalone.tag={{ redis_helm_image_tag }}
     values_files:
       - "{{ redis_helm_overrides }}"

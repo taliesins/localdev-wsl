@@ -1,0 +1,30 @@
+# code: language=ansible
+---
+- name: Qdrant Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: qdrant-overrides-yml.j2
+    dest: "{{ qdrant_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add Qdrant chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: qdrant
+    repo_url: "https://qdrant.github.io/qdrant-helm/"
+
+- name: Deploy Qdrant helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: qdrant
+    release_namespace: qdrant
+    chart_ref: qdrant/qdrant
+    chart_version: "{{ qdrant_helm_version }}"
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ qdrant_helm_overrides }}"

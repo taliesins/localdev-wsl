@@ -14,8 +14,8 @@
   ansible.builtin.include_tasks: smb-csi.yml
 - name: Traefik
   ansible.builtin.include_tasks: traefik.yml
-- name: ApiSix
-  ansible.builtin.include_tasks: apisix.yml
+# - name: ApiSix
+#   ansible.builtin.include_tasks: apisix.yml
 - name: Cert Manager
   ansible.builtin.include_tasks: cert-manager.yml
 # - name: Metrics Server
@@ -46,12 +46,14 @@
   ansible.builtin.include_tasks: ollama.yml
 - name: Open WebUI
   ansible.builtin.include_tasks: open-webui.yml
+- name: Qdrant
+  ansible.builtin.include_tasks: qdrant.yml
 - name: Flowise
   ansible.builtin.include_tasks: flowise.yml
 # - name: N8N
 #   ansible.builtin.include_tasks: n8n.yml
-- name: Node Red
-  ansible.builtin.include_tasks: node-red.yml
+# - name: Node Red
+#   ansible.builtin.include_tasks: node-red.yml
 # - name: Temporal Red
 #   ansible.builtin.include_tasks: temporal.yml
 

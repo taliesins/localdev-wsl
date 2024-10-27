@@ -1,0 +1,13 @@
+ingress:
+  enabled: true
+  hosts:
+    - host: qdrant.{{ qdrant_tld }}
+      paths:
+        - path: /
+          pathType: Prefix
+          servicePort: 6333
+    - host: qdrant.qdrant.{{ qdrant_cluster_name }}.{{ qdrant_tld }}
+      paths:
+        - path: /
+          pathType: Prefix
+          servicePort: 6333

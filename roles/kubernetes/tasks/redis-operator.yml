@@ -51,5 +51,7 @@
     create_namespace: true
     update_repo_cache: true
     wait: true
+    set_values:
+      - value: redisOperator.imageTag={{ redis_operator_helm_image_tag }}
     values_files:
       - "{{ redis_operator_helm_overrides }}"
