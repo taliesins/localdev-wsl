@@ -123,6 +123,13 @@ kube_prometheus_stack_cluster_name: "{{ cluster_name }}"
 kube_prometheus_stack_tld: "{{ tld }}"
 
 ######################################################
+## External Secrets
+######################################################
+
+external_secrets_helm_version: "0.10.5"
+external_secrets_helm_overrides: "{{ download_path }}/postgres-operator-overrides.yml"
+
+######################################################
 ## WhoAmI
 ######################################################
 
@@ -252,7 +259,7 @@ opensearch_cluster_instances: 1
 
 ollama_use_external_service: true
 ollama_external_yml: "{{ download_path }}/ollama-external.yml"
-ollama_helm_version: "0.51.0"
+ollama_helm_version: "0.63.0"
 ollama_helm_overrides: "{{ download_path }}/ollama-overrides.yml"
 ollama_cluster_name: "{{ cluster_name }}"
 ollama_tld: "{{ tld }}"

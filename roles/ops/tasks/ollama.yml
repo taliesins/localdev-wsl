@@ -33,15 +33,6 @@
   ansible.builtin.include_tasks: reset-connection.yml
   when: add_to_ollama_group_result.changed == true
 
-- name: Create the Ollama installation dir
-  become: true
-  ansible.builtin.file:
-    state: directory
-    owner: root
-    group: root
-    mode: 'u=rwx,g=rx,o=rx'
-    dest: '{{ ollama_install_dir }}'
-
 - name: Check current version
   ansible.builtin.command: >-
     {{ ollama_install_dir }}/ollama -v | head -n 2 | tail -n 1 | grep -o '{{ ollama_version }}'
@@ -49,7 +40,7 @@
   failed_when: false
   changed_when: false
 
-- name: Current version
+- name: Display Current version
   ansible.builtin.debug:
     msg: '{{ ollama_current_version.stdout }}'
   when: ollama_current_version.rc == 0
@@ -60,22 +51,30 @@
     path: '{{ ollama_install_dir }}'
     state: absent
   when:
-    - ollama_current_version.rc == 0
-    - ollama_current_version.stdout != ('v' + ollama_version)
+    - ollama_current_version.rc == 1
+
+- name: Create the Ollama installation dir
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: 'u=rwx,g=rx,o=rx'
+    dest: '{{ ollama_install_dir }}'
 
 - name: Download Ollama
   become: true
   ansible.builtin.get_url:
     url: '{{ ollama_mirror }}/{{ ollama_filename }}'
-    dest: '{{ ollama_download_dir }}/{{ ollama_filename }}'
+    dest: '{{ ollama_download_dir }}/{{ ollama_filename }}.{{ ollama_version }}.tgz'
     force: false
     validate_certs: true
     mode: 'u=rw,g=r,o=r'
-    
+
 - name: Install Ollama
   become: true
   ansible.builtin.unarchive:
-    src: '{{ ollama_download_dir }}/{{ ollama_filename }}'
+    src: '{{ ollama_download_dir }}/{{ ollama_filename }}.{{ ollama_version }}.tgz'
     remote_src: true
     dest: '{{ ollama_install_dir }}'
     extra_opts:
@@ -116,7 +115,7 @@
   ansible.builtin.service:
     name: ollama
     state: restarted
-  when: update_ollama_service_result.changed
+  when: update_ollama_service_result.changed or ollama_current_version.rc == 1
 
 - name: "Enable and (re)start Ollama service"
   become: true
