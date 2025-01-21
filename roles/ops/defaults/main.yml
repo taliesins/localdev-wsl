@@ -5,7 +5,7 @@
 ## Custom Kernel
 ######################################################
 
-kernel_version: "6.11.5"
+kernel_version: "6.12.10"
 kernel_arch: "x86_64"
 kernel_mirror: "https://github.com/taliesins/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-{{ kernel_version }}"
 kernel_modules_filename: "bzImage-{{ kernel_arch }}-modules_install"
@@ -16,15 +16,16 @@ kernel_download_dir: "{{ download_path }}"
 ## Docker
 ######################################################
 
-docker_nvidia_test_image: "nvcr.io/nvidia/cuda:12.3.1-base-ubuntu22.04"
+docker_nvidia_test_image: "nvcr.io/nvidia/cuda:12.6.3-base-ubuntu22.04"
 docker_containerd_address: '/var/snap/microk8s/common/run/containerd.sock'
+
 
 ######################################################
 ## Ollama
 ######################################################
 
 # Ollama version number
-ollama_version: '0.4.1'
+ollama_version: '0.5.6'
 
 # The CPU architecture of the Ollama executable to install
 ollama_architecture: 'amd64'
@@ -50,7 +51,7 @@ ollama_host: "0.0.0.0:11434"
 ######################################################
 
 # "kubectl" version to install
-kubectl_version: "1.31.0"
+kubectl_version: "1.32.1"
 
 # Processor architecture "kubectl" should run on
 kubectl_arch: "amd64"  # other possible values: "386","arm64","arm","ppc64le","s390x"
@@ -59,7 +60,8 @@ kubectl_arch: "amd64"  # other possible values: "386","arm64","arm","ppc64le","s
 kubectl_os: "linux"  # use "darwin" for MacOS X, "windows" for Windows
 
 # Mirror to download Kubectl from
-kubectl_mirror: "https://storage.googleapis.com/kubernetes-release/release/v{{ kubectl_version }}"
+kubectl_mirror: "https://dl.k8s.io/v{{ kubectl_version }}"
+#kubectl_hash_mirror: "https://cdn.dl.k8s.io/release/v{{ kubectl_version }}"
 
 kubectl_filename: "kubernetes-client-{{ kubectl_os }}-{{ kubectl_arch }}.tar.gz"
 
@@ -74,7 +76,7 @@ kubectl_download_dir: "{{ download_path }}"
 ######################################################
 
 # Helm version number
-helm_version: '3.16.1'
+helm_version: '3.17.0'
 
 # The CPU architecture of the Helm executable to install
 helm_architecture: 'amd64'
@@ -98,7 +100,7 @@ helm_download_dir: "{{ download_path }}"
 ######################################################
 
 # Cilium version number
-cilium_cli_version: '0.16.18'
+cilium_cli_version: '0.16.23'
 
 # The CPU architecture of the Cilium executable to install
 cilium_cli_architecture: 'amd64'
@@ -148,7 +150,7 @@ nerdctl_containerd_address: '/var/snap/microk8s/common/run/containerd.sock'
 ######################################################
 
 # K3D version number
-k3d_cli_version: '5.7.4'
+k3d_cli_version: '5.7.5'
 
 # The CPU architecture of the K3D executable to install
 k3d_cli_architecture: 'amd64'
@@ -168,7 +170,7 @@ k3d_cli_install_dir: '/usr/local/share/k3d'
 ## microk8s
 ######################################################
 
-microk8s_version: "1.31"
+microk8s_version: "1.32"
 
 microk8s_channel: "{{ microk8s_version }}/stable"
 

@@ -39,7 +39,7 @@
   ansible.builtin.get_url:
     url: '{{ kubectl_mirror }}/{{ kubectl_filename }}'
     dest: '{{ kubectl_download_dir }}/{{ kubectl_filename }}'
-    checksum: 'sha256:{{ kubectl_mirror }}/{{ kubectl_filename }}.sha256'
+    #checksum: 'sha256:{{ kubectl_hash_mirror }}/bin/linux/amd64/kubectl.sha256'
     force: false
     use_proxy: true
     validate_certs: true

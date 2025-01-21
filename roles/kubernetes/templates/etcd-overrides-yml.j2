@@ -1,0 +1,49 @@
+replicaCount: 1
+
+extraVolumes:
+  - name: ca-certificates-volume
+    configMap:
+      name: ca-bundle
+      items:
+        - key: ca-bundle.pem
+          path: ca-bundle.pem
+
+extraVolumeMounts:
+  - mountPath: /etc/ssl/certs/ca-certificates.crt
+    name: ca-certificates-volume
+    subPath: ca-bundle.pem
+
+auth:
+  client:    
+    existingSecret: "etcd-tls-secret"
+    certFilename: "tls.crt"
+    certKeyFilename: "tls.key"
+    caFilename: "ca.crt"
+
+    secureTransport: true
+    useAutoTLS: false
+    enableAuthentication: true
+  peer:
+    existingSecret: "etcd-tls-secret"
+    certFilename: "tls.crt"
+    certKeyFilename: "tls.key"
+    caFilename: "ca.crt"
+
+    secureTransport: true
+    useAutoTLS: false
+    enableAuthentication: true
+  rbac:
+    enabled: true
+    rootPassword: {{ etcd_root_password }}
+
+persistence:
+  enabled: true
+  size: {{ etcd_volume_size }}
+
+service:
+  type: LoadBalancer
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: {{ etcd_load_balancer_ip }}
+    io.cilium/lb-ipam-ips: {{ etcd_load_balancer_ip }}
+  ports:
+    client: {{ etcd_service_port_client }}    

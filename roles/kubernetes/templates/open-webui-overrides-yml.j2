@@ -1,9 +1,15 @@
 ollama:
-  externalHost: "http://ollama.ollama.{{ ollama_cluster_name }}.{{ ollama_tld }}"
+  enabled: false
 
-webui:
-  ingress:
-    enabled: true
-    host: open-webui.open-webui.{{ open_webui_cluster_name }}.{{ open_webui_tld }}
-  service:
-    type: LoadBalancer
+tika:
+  enabled: true
+
+ollamaUrls:
+- http://ollama.ollama.{{ ollama_cluster_name }}.{{ ollama_tld }}
+
+ingress:
+  enabled: true
+  host: "open-webui.open-webui.{{ open_webui_cluster_name }}.{{ open_webui_tld }}"
+ 
+service:
+  type: LoadBalancer

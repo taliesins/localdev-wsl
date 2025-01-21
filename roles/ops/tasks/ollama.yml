@@ -33,50 +33,51 @@
   ansible.builtin.include_tasks: reset-connection.yml
   when: add_to_ollama_group_result.changed == true
 
-- name: Check current version
-  ansible.builtin.command: >-
-    {{ ollama_install_dir }}/ollama -v | head -n 2 | tail -n 1 | grep -o '{{ ollama_version }}'
+- name: Check if Ollama is installed and retrieve version
+  become: true
+  ansible.builtin.command: "{{ ollama_install_dir }}/ollama -v"
   register: ollama_current_version
-  failed_when: false
+  failed_when: ollama_current_version.rc not in [0, 1, 2]
   changed_when: false
 
-- name: Display Current version
-  ansible.builtin.debug:
-    msg: '{{ ollama_current_version.stdout }}'
-  when: ollama_current_version.rc == 0
+- name: Set fact for version presence
+  set_fact:
+    ollama_installed: "{{ ollama_current_version.rc == 0 }}"
+    ollama_version_match: "{{ ollama_version in ollama_current_version.stdout }}"
+  changed_when: false
 
-- name: Remove existing installation
+- name: Remove existing Ollama installation if version mismatch or not installed
   become: true
   ansible.builtin.file:
     path: '{{ ollama_install_dir }}'
     state: absent
   when:
-    - ollama_current_version.rc == 1
+    - not ollama_installed or not ollama_version_match
 
-- name: Create the Ollama installation dir
+- name: Create Ollama installation directory
   become: true
   ansible.builtin.file:
+    path: '{{ ollama_install_dir }}'
     state: directory
     owner: root
     group: root
-    mode: 'u=rwx,g=rx,o=rx'
-    dest: '{{ ollama_install_dir }}'
+    mode: '0755'
 
-- name: Download Ollama
+- name: Download Ollama package
   become: true
   ansible.builtin.get_url:
     url: '{{ ollama_mirror }}/{{ ollama_filename }}'
-    dest: '{{ ollama_download_dir }}/{{ ollama_filename }}.{{ ollama_version }}.tgz'
-    force: false
-    validate_certs: true
-    mode: 'u=rw,g=r,o=r'
+    dest: '{{ ollama_download_dir }}/{{ ollama_filename }}'
+    mode: '0644'
+  when:
+    - not ollama_installed or not ollama_version_match
 
 - name: Install Ollama
   become: true
   ansible.builtin.unarchive:
-    src: '{{ ollama_download_dir }}/{{ ollama_filename }}.{{ ollama_version }}.tgz'
-    remote_src: true
+    src: '{{ ollama_download_dir }}/{{ ollama_filename }}'
     dest: '{{ ollama_install_dir }}'
+    remote_src: true
     extra_opts:
       - '--strip-components=2'
       - '--wildcards'
@@ -84,10 +85,11 @@
       - 'bin/ollama'
     owner: root
     group: root
-    mode: 'o-w'
-    creates: '{{ ollama_install_dir }}/ollama'
+    mode: '0755'
+  when:
+    - not ollama_installed or not ollama_version_match
 
-- name: Create ollama link
+- name: Create symbolic link for Ollama
   become: true
   ansible.builtin.file:
     src: '{{ ollama_install_dir }}/ollama'
@@ -95,34 +97,30 @@
     state: link
     owner: root
     group: root
-    mode: 'u=rwx,o=rx,o=rx'
+    mode: '0755'
+  when:
+    - not ollama_installed or not ollama_version_match
 
-- name: Setup Ollama service
+- name: Configure Ollama systemd service
   become: true
   ansible.builtin.template:
     src: systemd-ollama-service.j2
-    dest: /etc/systemd/system/ollama.service
-    mode: 'u=rw,g=r,o=r'
-  register: update_ollama_service_result
+    dest: /etc/systemd/system/ollama.service'
+    mode: '0644'
+  register: service_updated
 
 - name: Reload systemd
   become: true
   ansible.builtin.command: systemctl daemon-reload
-  when: update_ollama_service_result.changed
+  when: service_updated.changed
 
-- name: Restart Ollama service
+- name: Reload systemd and restart service if needed
   become: true
-  ansible.builtin.service:
+  ansible.builtin.systemd:
     name: ollama
-    state: restarted
-  when: update_ollama_service_result.changed or ollama_current_version.rc == 1
-
-- name: "Enable and (re)start Ollama service"
-  become: true
-  systemd:
-    name: "ollama"
-    daemon_reload: "{{ restart }}"
+    daemon_reload: yes
     enabled: yes
-    state: "{{ restart|ternary('restarted', 'started') }}"
-  vars:
-    restart: "{{ update_ollama_service_result.changed }}"
+    state: restarted
+  when:
+    - service_updated.changed
+    - not ollama_installed or not ollama_version_match

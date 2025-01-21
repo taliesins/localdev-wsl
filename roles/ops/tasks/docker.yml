@@ -51,33 +51,25 @@
     name: ip6tables
     path: /usr/sbin/ip6tables-legacy
 
-- name: Set IpTables DEFAULT_FORWARD_POLICY to ACCEPT
+- name: Check current IPv4 FORWARD policy
   become: true
-  ansible.builtin.iptables:
-    chain: FORWARD
-    policy: ACCEPT
-    ip_version: ipv4
+  ansible.builtin.command: iptables -S FORWARD
+  register: iptables_policy_ipv4
 
-- name: Set Ip6Tables DEFAULT_FORWARD_POLICY to ACCEPT
+- name: Set IPv4 FORWARD policy to ACCEPT if not set
   become: true
-  ansible.builtin.iptables:
-    chain: FORWARD
-    policy: ACCEPT
-    ip_version: ipv6
+  ansible.builtin.command: iptables -P FORWARD ACCEPT
+  when: "'-P FORWARD ACCEPT' not in iptables_policy_ipv4.stdout"
 
-# - name: Set IpTables DEFAULT_FORWARD_POLICY to ACCEPT
-#   become: true
-#   ansible.builtin.shell: |
-#     iptables -P FORWARD ACCEPT
-#   args:
-#     executable: /bin/bash
+- name: Check current IPv6 FORWARD policy
+  become: true
+  ansible.builtin.command: ip6tables -S FORWARD
+  register: iptables_policy_ipv6
 
-# - name: Set Ip6Tables DEFAULT_FORWARD_POLICY to ACCEPT
-#   become: true
-#   ansible.builtin.shell: |
-#     ip6tables -P FORWARD ACCEPT
-#   args:
-#     executable: /bin/bash
+- name: Set IPv6 FORWARD policy to ACCEPT if not set
+  become: true
+  ansible.builtin.command: ip6tables -P FORWARD ACCEPT
+  when: "'-P FORWARD ACCEPT' not in iptables_policy_ipv6.stdout"
 
 - name: Install Docker and its dependecies
   become: true

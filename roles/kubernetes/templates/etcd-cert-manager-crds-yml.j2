@@ -1,0 +1,32 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: etcd-tls-cert
+spec:
+  secretName: etcd-tls-secret
+  duration: 2160h # 90 days
+  renewBefore: 360h # 15 days
+  issuerRef:
+    name: cert-manager-ca
+    kind: ClusterIssuer
+  dnsNames:
+    - "etcd.etcd.svc.cluster.local"
+    - "etcd.etcd.svc"
+    - "etcd.etcd"
+    - "etcd"
+    - "*.etcd.etcd.svc.cluster.local"
+    - "*.etcd.etcd.svc"
+    - "*.etcd.etcd"
+    - "*.etcd"
+    - "etcd-headless.etcd.svc.cluster.local"
+    - "etcd-headless.etcd.svc"
+    - "*.etcd-headless.etcd.svc.cluster.local"
+    - "*.etcd-headless.etcd.svc"
+    - "*.etcd-headless.etcd"
+    - "*.etcd-headless"
+  ipAddresses:
+    - "127.0.0.1"
+    - "::1"
+  usages:
+    - server auth
+    - client auth

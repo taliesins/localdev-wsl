@@ -33,15 +33,15 @@
   become: true
   become_user: '{{ user }}'
   ansible.builtin.template:
-    src: trust-manager-overrides-yml.j2
+    src: trust-manager-crds-yml.j2
     dest: "{{ trust_manager_crds_yml }}"
     mode: 'u=rw,g=r,o=r'
 
-# - name: Deploy trust-manager crds
-#   become: true
-#   become_user: '{{ user }}'
-#   kubernetes.core.k8s:
-#     namespace: cert-manager
-#     state: present
-#     src: "{{ trust_manager_crds_yml }}"
-#     wait: yes
+- name: Deploy trust-manager crds
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.k8s:
+    namespace: cert-manager
+    state: present
+    src: "{{ trust_manager_crds_yml }}"
+    wait: yes

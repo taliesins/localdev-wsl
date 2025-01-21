@@ -1,0 +1,30 @@
+# code: language=ansible
+---
+- name: External DNS Helm Overrides
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: external-dns-overrides-yml.j2
+    dest: "{{ external_dns_helm_overrides }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Add External DNS chart repo
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm_repository:
+    name: external-dns
+    repo_url: "https://kubernetes-sigs.github.io/external-dns/"
+
+- name: Deploy CoreDNS helm chart
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.helm:
+    name: external-dns
+    release_namespace: external-dns
+    chart_ref: external-dns/external-dns
+    chart_version: "{{ external_dns_helm_version }}"
+    create_namespace: true
+    update_repo_cache: true
+    wait: true
+    values_files:
+      - "{{ external_dns_helm_overrides }}"

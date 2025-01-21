@@ -19,7 +19,7 @@
 - name: Install Cuda Toolkit
   become: true
   ansible.builtin.apt:
-    name: "cuda-toolkit-12-3"
+    name: "cuda-toolkit-12-6"
     state: "present"
     update_cache: yes
   when: use_nvidia|default(false)|bool
