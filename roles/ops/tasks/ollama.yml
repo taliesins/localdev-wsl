@@ -35,7 +35,7 @@
 
 - name: Check if Ollama is installed and retrieve version
   become: true
-  ansible.builtin.command: "{{ ollama_install_dir }}/ollama -v"
+  ansible.builtin.command: "{{ ollama_install_dir }}/bin/ollama -v"
   register: ollama_current_version
   failed_when: ollama_current_version.rc not in [0, 1, 2]
   changed_when: false
@@ -78,34 +78,47 @@
     src: '{{ ollama_download_dir }}/{{ ollama_filename }}'
     dest: '{{ ollama_install_dir }}'
     remote_src: true
-    extra_opts:
-      - '--strip-components=2'
-      - '--wildcards'
-      - '--no-anchored'
-      - 'bin/ollama'
     owner: root
     group: root
     mode: '0755'
   when:
     - not ollama_installed or not ollama_version_match
 
-- name: Create symbolic link for Ollama
+- name: Create symbolic link for Ollama bin - /usr/local/bin/ollama
   become: true
   ansible.builtin.file:
-    src: '{{ ollama_install_dir }}/ollama'
+    src: '{{ ollama_install_dir }}/bin/ollama'
     dest: '/usr/local/bin/ollama'
     state: link
     owner: root
     group: root
     mode: '0755'
-  when:
-    - not ollama_installed or not ollama_version_match
+
+- name: Create symbolic link for Ollama lib - /usr/local/lib/ollama
+  become: true
+  ansible.builtin.file:
+    src: '{{ ollama_install_dir }}/lib/ollama'
+    dest: '/usr/local/lib/ollama'
+    state: link
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Create symbolic link for Ollama - {{ ollama_install_dir }}/ollama
+  become: true
+  ansible.builtin.file:
+    src: '{{ ollama_install_dir }}/bin/ollama'
+    dest: '{{ ollama_install_dir }}/ollama'
+    state: link
+    owner: root
+    group: root
+    mode: '0755'
 
 - name: Configure Ollama systemd service
   become: true
   ansible.builtin.template:
     src: systemd-ollama-service.j2
-    dest: /etc/systemd/system/ollama.service'
+    dest: /etc/systemd/system/ollama.service
     mode: '0644'
   register: service_updated
 

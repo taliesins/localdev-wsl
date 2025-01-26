@@ -19,20 +19,19 @@ auth:
     certFilename: "tls.crt"
     certKeyFilename: "tls.key"
     caFilename: "ca.crt"
-
     secureTransport: true
     useAutoTLS: false
-    enableAuthentication: true
+    enableAuthentication: false
   peer:
     existingSecret: "etcd-tls-secret"
     certFilename: "tls.crt"
     certKeyFilename: "tls.key"
     caFilename: "ca.crt"
-
     secureTransport: true
     useAutoTLS: false
-    enableAuthentication: true
+    enableAuthentication: false
   rbac:
+    allowNoneAuthentication: false
     enabled: true
     rootPassword: {{ etcd_root_password }}
 

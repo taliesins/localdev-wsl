@@ -303,6 +303,7 @@ ollama_default_model: "llama3.1"
 ######################################################
 
 open_webui_helm_version: "5.4.0"
+open_webui_helm_image_tag: "v0.5.7" #https://github.com/orgs/open-webui/packages/container/open-webui/versions
 open_webui_helm_overrides: "{{ download_path }}/open-webui-overrides.yml"
 open_webui_cluster_name: "{{ cluster_name }}"
 open_webui_tld: "{{ tld }}"

@@ -25,7 +25,7 @@ docker_containerd_address: '/var/snap/microk8s/common/run/containerd.sock'
 ######################################################
 
 # Ollama version number
-ollama_version: '0.5.6'
+ollama_version: '0.5.7'
 
 # The CPU architecture of the Ollama executable to install
 ollama_architecture: 'amd64'

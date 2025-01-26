@@ -9,7 +9,15 @@ Group=ollama
 Restart=always
 RestartSec=3
 Environment="PATH=$PATH"
+Environment="LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/local/lib/ollama"
 Environment="OLLAMA_HOST={{ ollama_host }}"
+Environment="OLLAMA_FLASH_ATTENTION=1"
+Environment="OLLAMA_MAX_LOADED_MODELS=6"
+Environment="OLLAMA_NUM_PARALLEL=4"
+Environment="OLLAMA_MAX_QUEUE=512"
+Environment="OLLAMA_KV_CACHE_TYPE=q8_0"
+Environment="NVIDIA_DRIVER_CAPABILITIES=compute,utility"
+Environment="NVIDIA_VISIBLE_DEVICES=all"
 
 [Install]
 WantedBy=default.target
