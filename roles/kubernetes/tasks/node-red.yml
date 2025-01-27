@@ -7,6 +7,7 @@
     src: node-red-overrides-yml.j2
     dest: "{{ node_red_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: node_red_helm_overrides_result
 
 - name: Add Node Red chart repo
   become: true
@@ -24,9 +25,8 @@
     chart_ref: node-red/node-red
     chart_version: "{{ node_red_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: node_red_helm_overrides_result.changed | default(true)
     wait: true
-    set_values:
-      - value: image.tag={{ node_red_helm_image_tag }}
     values_files:
       - "{{ node_red_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (node_red_helm_overrides_result.changed | default(true))

@@ -8,6 +8,7 @@
     src: rabbitmq-cluster-operator-overrides-yml.j2
     dest: "{{ rabbitmq_cluster_operator_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: rabbitmq_cluster_operator_helm_overrides_result
 
 - name: Add RabbitMQ Cluster Operator chart repo
   become: true
@@ -25,7 +26,8 @@
     chart_ref: rabbitmq-cluster-operator/rabbitmq-cluster-operator
     chart_version: "{{ rabbitmq_cluster_operator_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: rabbitmq_cluster_operator_helm_overrides_result.changed | default(true)
     wait: true
     values_files:
       - "{{ rabbitmq_cluster_operator_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (rabbitmq_cluster_operator_helm_overrides_result.changed | default(true))

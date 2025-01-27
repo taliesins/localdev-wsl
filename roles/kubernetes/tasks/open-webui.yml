@@ -7,6 +7,7 @@
     src: open-webui-overrides-yml.j2
     dest: "{{ open_webui_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: open_webui_helm_overrides_result
 
 - name: Add Open WebUI chart repo
   become: true
@@ -24,7 +25,8 @@
     chart_ref: open-webui/open-webui
     chart_version: "{{ open_webui_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: open_webui_helm_overrides_result.changed | default(true)
     wait: true
     values_files:
       - "{{ open_webui_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (open_webui_helm_overrides_result.changed | default(true))

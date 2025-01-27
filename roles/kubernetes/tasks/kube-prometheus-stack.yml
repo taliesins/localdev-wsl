@@ -7,6 +7,7 @@
     src: kube-prometheus-stack-overrides-yml.j2
     dest: "{{ kube_prometheus_stack_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: kube_prometheus_stack_helm_overrides_result
 
 - name: Add Kube-Prometheus-Stack chart repo
   become: true
@@ -24,7 +25,8 @@
     chart_ref: kube-prometheus-stack/kube-prometheus-stack
     chart_version: "{{ kube_prometheus_stack_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: kube_prometheus_stack_helm_overrides_result.changed | default(true)
     wait: true
     values_files:
       - "{{ kube_prometheus_stack_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (kube_prometheus_stack_helm_overrides_result.changed | default(true))

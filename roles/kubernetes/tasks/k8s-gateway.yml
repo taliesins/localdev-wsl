@@ -7,7 +7,8 @@
     src: k8s-gateway-primary-overrides.yml.j2
     dest: "{{ k8s_gateway_primary_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
-
+  register: k8s_gateway_primary_helm_overrides_result
+  
 - name: K8S Gateway Secondary Helm Overrides
   become: true
   become_user: '{{ user }}'
@@ -15,6 +16,7 @@
     src: k8s-gateway-secondary-overrides.yml.j2
     dest: "{{ k8s_gateway_secondary_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: k8s_gateway_secondary_helm_overrides_result
 
 - name: Add K8S Gateway chart repo
   become: true
@@ -32,10 +34,11 @@
     chart_ref: k8s-gateway/k8s-gateway
     chart_version: "{{ k8s_gateway_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: k8s_gateway_primary_helm_overrides_result.changed | default(true)
     wait: true
     values_files:
       - "{{ k8s_gateway_primary_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (k8s_gateway_primary_helm_overrides_result.changed | default(true))
 
 - name: Deploy K8S Gateway Secondary helm chart
   become: true
@@ -46,7 +49,8 @@
     chart_ref: k8s-gateway/k8s-gateway
     chart_version: "{{ k8s_gateway_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: k8s_gateway_secondary_helm_overrides_result.changed | default(true)
     wait: true
     values_files:
       - "{{ k8s_gateway_secondary_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (k8s_gateway_secondary_helm_overrides_result.changed | default(true))

@@ -9,6 +9,7 @@
     src: opensearch-cluster-overrides-yml.j2
     dest: "{{ opensearch_cluster_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: opensearch_cluster_helm_overrides_result
 
 - name: Add OpenSearch Cluster chart repo
   become: true
@@ -26,7 +27,8 @@
     chart_ref: opensearch-cluster/opensearch-cluster
     chart_version: "{{ opensearch_cluster_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: opensearch_cluster_helm_overrides_result.changed | default(true)
     wait: true
     values_files:
       - "{{ opensearch_cluster_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (opensearch_cluster_helm_overrides_result.changed | default(true))

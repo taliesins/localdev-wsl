@@ -7,6 +7,7 @@
     src: traefik-overrides-yml.j2
     dest: "{{ traefik_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: traefik_helm_overrides_result
 
 - name: Traefik Dashboard Yml
   become: true
@@ -32,10 +33,11 @@
     chart_ref: traefik/traefik
     chart_version: "{{ traefik_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: traefik_helm_overrides_result.changed | default(true)
     wait: true
     values_files:
       - "{{ traefik_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (traefik_helm_overrides_result.changed | default(true))
 
 - name: Deploy Traefik Dashboard
   become: true

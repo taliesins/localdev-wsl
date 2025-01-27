@@ -7,6 +7,7 @@
     src: whoami-overrides-yml.j2
     dest: "{{ whoami_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: whoami_helm_overrides_result
 
 - name: Add WhoAmI chart repo
   become: true
@@ -24,7 +25,8 @@
     chart_ref: whoami/whoami
     chart_version: "{{ whoami_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: whoami_helm_overrides_result.changed | default(true)
     wait: true
     values_files:
       - "{{ whoami_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (whoami_helm_overrides_result.changed | default(true))

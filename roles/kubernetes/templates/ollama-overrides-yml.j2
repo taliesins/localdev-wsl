@@ -1,3 +1,5 @@
+# ollama_helm_version: {{ ollama_helm_version }}
+
 # Ollama parameters
 ollama:
   gpu:
@@ -31,3 +33,6 @@ ingress:
     paths:
       - path: /
         pathType: Prefix
+
+image:
+  tag: {{ ollama_helm_image_tag }}

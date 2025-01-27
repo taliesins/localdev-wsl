@@ -32,6 +32,7 @@
     src: redis-operator-overrides-yml.j2
     dest: "{{ redis_operator_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: redis_operator_helm_overrides_result
 
 - name: Add Redis Operator chart repo
   become: true
@@ -49,9 +50,8 @@
     chart_ref: redis-operator/redis-operator
     chart_version: "{{ redis_operator_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: redis_operator_helm_overrides_result.changed | default(true)
     wait: true
-    set_values:
-      - value: redisOperator.imageTag={{ redis_operator_helm_image_tag }}
     values_files:
       - "{{ redis_operator_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (redis_operator_helm_overrides_result.changed | default(true))

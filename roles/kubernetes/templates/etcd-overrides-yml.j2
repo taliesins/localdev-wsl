@@ -1,4 +1,6 @@
-replicaCount: 1
+# etcd_helm_version: {{ etcd_helm_version }}
+
+replicaCount: 2 # it does not set ETCD_INITIAL_CLUSTER env variables if its not bigger then 1, which causes script to fail
 
 extraVolumes:
   - name: ca-certificates-volume
@@ -21,7 +23,7 @@ auth:
     caFilename: "ca.crt"
     secureTransport: true
     useAutoTLS: false
-    enableAuthentication: false
+    enableAuthentication: true
   peer:
     existingSecret: "etcd-tls-secret"
     certFilename: "tls.crt"
@@ -29,11 +31,14 @@ auth:
     caFilename: "ca.crt"
     secureTransport: true
     useAutoTLS: false
-    enableAuthentication: false
+    enableAuthentication: true
   rbac:
-    allowNoneAuthentication: false
+    allowNoneAuthentication: true
+    create: true
+    existingSecret: "etcd-root-credentials"
+    existingSecretPasswordKey: "password"
+  token:
     enabled: true
-    rootPassword: {{ etcd_root_password }}
 
 persistence:
   enabled: true
@@ -46,3 +51,13 @@ service:
     io.cilium/lb-ipam-ips: {{ etcd_load_balancer_ip }}
   ports:
     client: {{ etcd_service_port_client }}    
+
+customLivenessProbe:
+  exec:
+    command:
+      - /opt/bitnami/scripts/etcd/healthcheck.sh
+  initialDelaySeconds: 60
+  timeoutSeconds: 5
+  periodSeconds: 30
+  successThreshold: 1
+  failureThreshold: 5

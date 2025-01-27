@@ -1,3 +1,5 @@
+# coredns_helm_version: {{ coredns_helm_version }}
+
 service:
   clusterIP: {{ coredns_primary_dns_ipv4 }}
   clusterIPs: [{{ coredns_primary_dns_ipv4 }}]

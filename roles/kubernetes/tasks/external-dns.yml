@@ -7,7 +7,8 @@
     src: external-dns-overrides-yml.j2
     dest: "{{ external_dns_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
-
+  register: external_dns_helm_overrides_result
+  
 - name: Add External DNS chart repo
   become: true
   become_user: '{{ user }}'
@@ -24,7 +25,8 @@
     chart_ref: external-dns/external-dns
     chart_version: "{{ external_dns_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: external_dns_helm_overrides_result.changed | default(true)
     wait: true
     values_files:
       - "{{ external_dns_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (external_dns_helm_overrides_result.changed | default(true))

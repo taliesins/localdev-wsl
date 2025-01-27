@@ -1,3 +1,4 @@
+# node_red_helm_version: {{ node_red_helm_version }}
 persistence:
   enabled: true
   accessMode: ReadWriteOnce
@@ -14,3 +15,6 @@ ingress:
       paths:
         - path: /
           pathType: ImplementationSpecific
+
+image:
+  tag: {{ node_red_helm_image_tag }}

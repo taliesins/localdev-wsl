@@ -1,6 +1,10 @@
+# n8n_helm_version: {{ n8n_helm_version }}
 service:
   type: LoadBalancer
   loadBalancerIP: {{ n8n_load_balancer_ip }}
+
+image:
+  tag: "{{ n8n_helm_image_tag }}"
 
 ingress:
   enabled: true

@@ -1,8 +1,34 @@
 # code: language=ansible
 ---
-- name: Generate a password
+- name: Check if the etcd root credentials exists in Kubernetes secret  
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: etcd-root-credentials
+    namespace: etcd
+  register: secret_check
+  failed_when: false
+  changed_when: false
+
+- name: Generate a secure etcd root password if secret does not exist
   ansible.builtin.set_fact:
     etcd_root_password: "{{ lookup('password', '/dev/null length=16 chars=ascii_letters,digits') }}"
+  when: secret_check.resources | length == 0  # Only run if the secret does not exist
+
+- name: Create secure credentials for etcd root user in Kubernetes secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: etcd-root-credentials
+        namespace: etcd
+      type: Opaque
+      data:
+        username: "{{'root' | b64encode}}"
+        password: "{{ etcd_root_password | b64encode }}"
+  when: secret_check.resources | length == 0  # Only run if the secret does not exist
 
 - name: Etcd cert-manager crds Yaml
   become: true
@@ -28,6 +54,7 @@
     src: etcd-overrides-yml.j2
     dest: "{{ etcd_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: etcd_helm_overrides_result
 
 - name: Deploy ETCD helm chart
   become: true
@@ -38,7 +65,9 @@
     chart_ref: oci://registry-1.docker.io/bitnamicharts/etcd
     chart_version: "{{ etcd_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: etcd_helm_overrides_result.changed | default(true)
     wait: true
+    disable_hook: not (etcd_helm_overrides_result.changed | default(true))
     values_files:
       - "{{ etcd_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (etcd_helm_overrides_result.changed | default(true))

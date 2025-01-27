@@ -7,6 +7,7 @@
     src: smb-csi-overrides-yml.j2
     dest: "{{ smb_csi_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: smb_csi_helm_overrides_result
 
 - name: Add SMB CSI chart repo
   become: true
@@ -24,7 +25,8 @@
     chart_ref: smb-csi/csi-driver-smb
     chart_version: "{{ smb_csi_helm_value }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: smb_csi_helm_overrides_result.changed | default(true)
     wait: true
     values_files:
       - "{{ smb_csi_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (smb_csi_helm_overrides_result.changed | default(true))

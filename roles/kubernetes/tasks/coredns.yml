@@ -7,6 +7,7 @@
     src: coredns-overrides-yml.j2
     dest: "{{ coredns_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: coredns_helm_overrides_result
 
 - name: Add CoreDNS chart repo
   become: true
@@ -24,7 +25,8 @@
     chart_ref: coredns/coredns
     chart_version: "{{ coredns_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: coredns_helm_overrides_result.changed | default(true)
     wait: true
     values_files:
       - "{{ coredns_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (coredns_helm_overrides_result.changed | default(true))

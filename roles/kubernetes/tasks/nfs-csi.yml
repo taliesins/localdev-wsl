@@ -7,6 +7,7 @@
     src: nfs-csi-overrides-yml.j2
     dest: "{{ nfs_csi_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: nfs_csi_helm_overrides_result
 
 - name: Add NFS CSI chart repo
   become: true
@@ -24,7 +25,8 @@
     chart_ref: nfs-csi/csi-driver-nfs
     chart_version: "{{ nfs_csi_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: nfs_csi_helm_overrides_result.changed | default(true)
     wait: true
     values_files:
       - "{{ nfs_csi_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (nfs_csi_helm_overrides_result.changed | default(true))

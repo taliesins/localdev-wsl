@@ -1,4 +1,6 @@
+# external_coredns_helm_version: {{ external_coredns_helm_version }}
 isClusterService: false
+replicaCount: 1
 
 service:
   clusterIP: {{ external_coredns_primary_dns_ipv4 }}
@@ -19,19 +21,53 @@ servers:
   - name: health
     configBlock: |-
       lameduck 5s
-  # Serves a /ready endpoint on :8181, required for readinessProbe
-  - name: ready
-  # Serves a /metrics endpoint on :9153, required for serviceMonitor
-  - name: prometheus
-    parameters: 0.0.0.0:9153
-  - name: cache
-    parameters: 30
-  - name: loop
-  - name: reload
-  - name: loadbalance
   - name: etcd
     parameters: {{ external_coredns_domain }}
     configBlock: |-
-      stubzones
-      path /skydns
       endpoint {{ external_coredns_etcd_address }}
+      tls /etc/tls/tls.crt /etc/tls/tls.key /etc/tls/ca.crt
+      path /coredns
+  - name: cache
+    parameters: 30
+  # - name: forward
+  - name: reload
+  - name: log
+  - name: loadbalance
+  - name: loop
+  # Serves a /metrics endpoint on :9153, required for serviceMonitor
+  - name: prometheus
+    parameters: 0.0.0.0:9153
+  # Serves a /ready endpoint on :8181, required for readinessProbe
+  - name: ready
+
+extraVolumes:
+  - name: ca-certificates-volume
+    configMap:
+      name: ca-bundle
+      items:
+        - key: ca-bundle.pem
+          path: ca-bundle.pem
+  - name: etcd-certificates-volume
+    secret:
+      secretName: external-coredns-etcd-tls-secret
+      items:
+        - key: tls.crt
+          path: tls.crt
+        - key: tls.key
+          path: tls.key
+        - key: ca.crt
+          path: ca.crt
+
+extraVolumeMounts:
+  - mountPath: /etc/ssl/certs/ca-certificates.crt
+    name: ca-certificates-volume
+    subPath: ca-bundle.pem
+  - name: etcd-certificates-volume
+    mountPath: /etc/tls/tls.crt
+    subPath: tls.crt
+  - name: etcd-certificates-volume
+    mountPath: /etc/tls/tls.key
+    subPath: tls.key
+  - name: etcd-certificates-volume
+    mountPath: /etc/tls/ca.crt
+    subPath: ca.crt

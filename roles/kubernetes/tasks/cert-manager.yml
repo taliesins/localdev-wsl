@@ -7,6 +7,7 @@
     src: cert-manager-overrides-yml.j2
     dest: "{{ cert_manager_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: cert_manager_helm_overrides_result
 
 - name: Add Cert Manager chart repo
   become: true
@@ -24,10 +25,11 @@
     chart_ref: cert-manager/cert-manager
     chart_version: "{{ cert_manager_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: cert_manager_helm_overrides_result.changed | default(true)
     wait: true
     values_files:
       - "{{ cert_manager_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (cert_manager_helm_overrides_result.changed | default(true))
 
 - name: cert-manager crds Yaml
   become: true

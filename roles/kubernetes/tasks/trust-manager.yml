@@ -7,6 +7,7 @@
     src: trust-manager-overrides-yml.j2
     dest: "{{ trust_manager_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: trust_manager_helm_overrides_result
 
 - name: Add Trust Manager chart repo
   become: true
@@ -24,11 +25,12 @@
     chart_ref: cert-manager/trust-manager
     chart_version: "{{ trust_manager_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: trust_manager_helm_overrides_result.changed | default(true)
     wait: true
     values_files:
       - "{{ trust_manager_helm_overrides }}"
-
+  when: (check_helm_deployment | default(true)) or (trust_manager_helm_overrides_result.changed | default(true))
+  
 - name: trust-manager crds Yaml
   become: true
   become_user: '{{ user }}'
@@ -45,3 +47,4 @@
     state: present
     src: "{{ trust_manager_crds_yml }}"
     wait: yes
+  

@@ -7,6 +7,7 @@
     src: n8n-overrides-yml.j2
     dest: "{{ n8n_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: n8n_helm_overrides_result
 
 - name: Add N8N chart repo
   become: true
@@ -22,11 +23,10 @@
     name: n8n
     release_namespace: n8n
     chart_ref: n8n/n8n
-    chart_version: "{{ n8n_helm_values }}"
+    chart_version: "{{ n8n_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: n8n_helm_overrides_result.changed | default(true)
     wait: true
-    set_values:
-      - value: image.tag=1.53.2
     values_files:
       - "{{ n8n_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (n8n_helm_overrides_result.changed | default(true))

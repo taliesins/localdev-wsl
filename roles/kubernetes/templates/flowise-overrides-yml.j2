@@ -1,3 +1,8 @@
+# flowise_helm_version: {{ flowise_helm_version }}
+
+image:
+  tag: {{ flowise_helm_image_tag }}
+
 service:
   type: LoadBalancer
   loadBalancerIP: {{ flowise_load_balancer_ip }}

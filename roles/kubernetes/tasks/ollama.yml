@@ -27,6 +27,7 @@
     dest: "{{ ollama_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
   when: not ollama_use_external_service
+  register: ollama_helm_overrides_result
 
 - name: Add Ollama chart repo
   become: true
@@ -45,8 +46,8 @@
     chart_ref: ollama/ollama
     chart_version: "{{ ollama_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: ollama_use_external_service.changed | default(true)
     wait: true
     values_files:
       - "{{ ollama_helm_overrides }}"
-  when: not ollama_use_external_service
+  when: not ollama_use_external_service and ((check_helm_deployment | default(true)) or (ollama_use_external_service.changed | default(true)))

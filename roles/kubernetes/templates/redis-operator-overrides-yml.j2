@@ -1,5 +1,7 @@
+
 replicas: 1
 redisOperator:
+  imageTag:  {{ redis_operator_helm_image_tag }}
   webhook: true
 certificate:
   name: redis-operator-webhook-tls

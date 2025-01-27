@@ -9,6 +9,7 @@ storageSpec:
   #   selector: {}
 
 redisStandalone:
+  tag: {{ redis_helm_image_tag }}
   redisSecret:
     secretName: "{{ redis_name }}-secret"
     secretKey: "password"

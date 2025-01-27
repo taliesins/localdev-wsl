@@ -32,6 +32,7 @@
     src: redis-overrides-yml.j2
     dest: "{{ redis_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: redis_helm_overrides_result
 
 - name: Add Redis chart repo
   become: true
@@ -49,9 +50,8 @@
     chart_ref: redis/redis
     chart_version: "{{ redis_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: redis_helm_overrides_result.changed | default(true)
     wait: true
-    set_values:
-      - value: redisStandalone.tag={{ redis_helm_image_tag }}
     values_files:
       - "{{ redis_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (redis_helm_overrides_result.changed | default(true))

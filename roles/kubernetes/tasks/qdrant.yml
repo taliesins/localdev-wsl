@@ -7,6 +7,7 @@
     src: qdrant-overrides-yml.j2
     dest: "{{ qdrant_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: qdrant_helm_overrides_result
 
 - name: Add Qdrant chart repo
   become: true
@@ -24,7 +25,8 @@
     chart_ref: qdrant/qdrant
     chart_version: "{{ qdrant_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: qdrant_helm_overrides_result.changed | default(true)
     wait: true
     values_files:
       - "{{ qdrant_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (qdrant_helm_overrides_result.changed | default(true))

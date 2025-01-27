@@ -7,6 +7,7 @@
     src: flowise-overrides-yml.j2
     dest: "{{ flowise_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: flowise_helm_overrides_result
 
 - name: Add Flowise chart repo
   become: true
@@ -24,9 +25,8 @@
     chart_ref: flowise/flowise
     chart_version: "{{ flowise_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: flowise_helm_overrides_result.changed | default(true)
     wait: true
-    set_values:
-      - value: image.tag={{ flowise_helm_image_tag }}
     values_files:
       - "{{ flowise_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (flowise_helm_overrides_result.changed | default(true))

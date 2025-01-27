@@ -8,6 +8,7 @@
     src: postgres-operator-ui-overrides-yml.j2
     dest: "{{ postgres_operator_ui_helm_overrides }}"
     mode: 'u=rw,g=r,o=r'
+  register: postgres_operator_ui_helm_overrides_result
 
 - name: Add Postgres Operator UI chart repo
   become: true
@@ -25,7 +26,8 @@
     chart_ref: postgres-operator-ui/postgres-operator-ui
     chart_version: "{{ postgres_operator_ui_helm_version }}"
     create_namespace: true
-    update_repo_cache: true
+    update_repo_cache: postgres_operator_ui_helm_overrides_result.changed | default(true)
     wait: true
     values_files:
       - "{{ postgres_operator_ui_helm_overrides }}"
+  when: (check_helm_deployment | default(true)) or (postgres_operator_ui_helm_overrides_result.changed | default(true))
