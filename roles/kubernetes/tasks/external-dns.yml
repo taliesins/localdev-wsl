@@ -1,5 +1,29 @@
 # code: language=ansible
 ---
+- name: Create External DNS namespace
+  kubernetes.core.k8s:
+    name: external-dns
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: External DNS Etcd cert-manager crds Yaml
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.template:
+    src: external-dns-etcd-cert-manager-crds-yml.j2
+    dest: "{{ external_dns_etcd_cert_manager_crds_yml }}"
+    mode: 'u=rw,g=r,o=r'
+
+- name: Deploy External DNS Etcd cert-manager crds
+  become: true
+  become_user: '{{ user }}'
+  kubernetes.core.k8s:
+    namespace: external-dns
+    state: present
+    src: "{{ external_dns_etcd_cert_manager_crds_yml }}"
+    wait: yes
+
 - name: External DNS Helm Overrides
   become: true
   become_user: '{{ user }}'
@@ -16,7 +40,7 @@
     name: external-dns
     repo_url: "https://kubernetes-sigs.github.io/external-dns/"
 
-- name: Deploy CoreDNS helm chart
+- name: Deploy External DNS helm chart
   become: true
   become_user: '{{ user }}'
   kubernetes.core.helm:
@@ -25,8 +49,8 @@
     chart_ref: external-dns/external-dns
     chart_version: "{{ external_dns_helm_version }}"
     create_namespace: true
-    update_repo_cache: external_dns_helm_overrides_result.changed | default(true)
+    update_repo_cache: "{{ external_dns_helm_overrides_result.changed | default(true) }}"
     wait: true
     values_files:
       - "{{ external_dns_helm_overrides }}"
-  when: (check_helm_deployment | default(true)) or (external_dns_helm_overrides_result.changed | default(true))
+  #when: (check_helm_deployment | default(true)) or (external_dns_helm_overrides_result.changed | default(true))

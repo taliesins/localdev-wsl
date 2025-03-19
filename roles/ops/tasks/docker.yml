@@ -17,11 +17,20 @@
     - software-properties-common
     - iptables-persistent
 
-- name: Install pip packages that are needed by docker
+- name: Install pip packages that are needed by docker for root
   become: true
   ansible.builtin.pip:
+    break_system_packages: true
     name:
       - docker
+
+- name: Install pip packages that are needed by docker for user
+  become: true
+  become_user: '{{ user }}'
+  ansible.builtin.pip:
+    break_system_packages: true
+    name:
+      - docker      
 
 - name: Add an apt signing key for Docker
   become: true

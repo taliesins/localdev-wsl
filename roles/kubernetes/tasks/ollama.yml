@@ -46,7 +46,7 @@
     chart_ref: ollama/ollama
     chart_version: "{{ ollama_helm_version }}"
     create_namespace: true
-    update_repo_cache: ollama_use_external_service.changed | default(true)
+    update_repo_cache: "{{ ollama_use_external_service.changed | default(true) }}"
     wait: true
     values_files:
       - "{{ ollama_helm_overrides }}"

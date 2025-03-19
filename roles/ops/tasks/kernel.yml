@@ -12,85 +12,112 @@
     - unzip
     - gzip
 
-- name: Create download directory
+- name: Create download directory for kernel options
   ansible.builtin.file:
     state: directory
     mode: 'u=rwx,g=rx,o=rx'
-    dest: '{{ kernel_download_dir }}'
+    dest: '{{ kernel_download_dir }}/{{ kernel_optional_filename }}'
+
+- name: Create download directory for kernel modules
+  ansible.builtin.file:
+    state: directory
+    mode: 'u=rwx,g=rx,o=rx'
+    dest: '{{ kernel_download_dir }}/{{ kernel_modules_filename }}'
 
 - name: Download Kernel Modules
   ansible.builtin.get_url:
-    url: '{{ kernel_mirror }}/{{ kernel_modules_filename }}.tar.gz'
+    url: '{{ kernel_mirror }}/bzImage-{{ kernel_arch }}-modules_install.tar.gz'
     dest: '{{ kernel_download_dir }}/{{ kernel_modules_filename }}.tar.gz'
     #checksum: "sha256:{{ kernel_mirror }}/{{ kernel_modules_filename }}.sha256"
     force: false
     validate_certs: true
     mode: 'u=rw,g=r,o=r'
+  register: kernel_modules_downloaded
 
 - name: Download Kernel Options
   ansible.builtin.get_url:
-    url: '{{ kernel_mirror }}/{{ kernel_optional_filename }}.tar.gz'
+    url: '{{ kernel_mirror }}/bzImage-{{ kernel_arch }}-optional_install.tar.gz'
     dest: '{{ kernel_download_dir }}/{{ kernel_optional_filename }}.tar.gz'
     #checksum: "sha256:{{ kernel_mirror }}/{{ kernel_optional_filename }}.sha256"
     force: false
     validate_certs: true
     mode: 'u=rw,g=r,o=r'
+  register: kernel_options_downloaded
 
 - name: Extract Kernel Modules
   become: true
   ansible.builtin.unarchive:
     src: '{{ kernel_download_dir }}/{{ kernel_modules_filename }}.tar.gz'
-    dest: '{{ kernel_download_dir }}'
+    dest: '{{ kernel_download_dir }}/{{ kernel_modules_filename }}'
     owner: root
     group: root
     mode: 'o-w'
-    creates: '{{ kernel_download_dir }}/bzImage-{{ kernel_arch }}-modules_install'
+    creates: '{{ kernel_download_dir }}/{{ kernel_modules_filename }}/bzImage-x86_64-modules_install'
+  register: kernel_modules_extracted
 
 - name: Extract Options Modules
   become: true
   ansible.builtin.unarchive:
     src: '{{ kernel_download_dir }}/{{ kernel_optional_filename }}.tar.gz'
-    dest: '{{ kernel_download_dir }}'
+    dest: '{{ kernel_download_dir }}/{{ kernel_optional_filename }}'
     owner: root
     group: root
     mode: 'o-w'
-    creates: '{{ kernel_download_dir }}/bzImage-{{ kernel_arch }}-optional_install'
+    creates: '{{ kernel_download_dir }}/{{ kernel_optional_filename }}/bzImage-x86_64-optional_install'
+  register: kernel_options_extracted
 
-- name: Extract Kernel Modules
+- name: Ensure Modules directory is present
+  become: true
+  file:
+    path: /usr/lib/modules/{{ kernel_version }}-WSL2-STABLE+
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  register: modules_directory
+
+- name: Install Kernel Modules
   become: true
   ansible.builtin.shell: |
     ./modules-install.sh
-    touch run_once
   args:
     executable: /bin/bash
-    chdir: "{{ kernel_download_dir }}/bzImage-{{ kernel_arch }}-modules_install"
-    creates: "{{ kernel_download_dir }}/bzImage-{{ kernel_arch }}-modules_install/run_once"
+    chdir: "{{ kernel_download_dir }}/{{ kernel_modules_filename }}/bzImage-x86_64-modules_install"
+    creates: "{{ kernel_download_dir }}/{{ kernel_modules_filename }}/run_once"
+  when: modules_directory.changed or kernel_modules_downloaded.changed or kernel_modules_extracted.changed
 
-- name: Extract Kernel Options
+- name: Install Kernel Options
   become: true
   ansible.builtin.shell: |
     ./optionals-install.sh
-    touch run_once
   args:
     executable: /bin/bash
-    chdir: "{{ kernel_download_dir }}/bzImage-{{ kernel_arch }}-optional_install"
-    creates: "{{ kernel_download_dir }}/bzImage-{{ kernel_arch }}-optional_install/run_once"
+    chdir: "{{ kernel_download_dir }}/{{ kernel_optional_filename }}/bzImage-x86_64-optional_install"
+    creates: "{{ kernel_download_dir }}/{{ kernel_optional_filename }}/run_once"
+  when: modules_directory.changed or kernel_options_downloaded.changed or kernel_options_extracted.changed
 
-- name: Load network kernel modules
+- name: Setup network kernel modules
   become: true
   ansible.builtin.template:
     src: etc-modules-load-d-network-conf.j2
     dest: /etc/modules-load.d/network.conf
     mode: 'u=rw,g=r,o=r'
 
-- name: Load storage kernel modules
+- name: Setup usb kernel modules
+  become: true
+  ansible.builtin.template:
+    src: etc-modules-load-d-usb-conf.j2
+    dest: /etc/modules-load.d/usb.conf
+    mode: 'u=rw,g=r,o=r'
+
+- name: Setup storage kernel modules
   become: true
   ansible.builtin.template:
     src: etc-modules-load-d-storage-conf.j2
     dest: /etc/modules-load.d/storage.conf
     mode: 'u=rw,g=r,o=r'
 
-- name: Load storage kernel modules
+- name: Setup systemd modules to load modules
   become: true
   ansible.builtin.template:
     src: systemd-modules-load-service.j2
@@ -110,4 +137,4 @@
     state: restarted
     daemon_reload: true
     name: systemd-modules-load
-  when: systemd_modules_load_service.changed
+  when: systemd_modules_load_service.changed or kernel_modules_downloaded.changed or kernel_modules_extracted.changed or kernel_options_downloaded.changed or kernel_options_extracted.changed

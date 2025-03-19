@@ -25,7 +25,7 @@
     chart_ref: open-webui/open-webui
     chart_version: "{{ open_webui_helm_version }}"
     create_namespace: true
-    update_repo_cache: open_webui_helm_overrides_result.changed | default(true)
+    update_repo_cache: "{{ open_webui_helm_overrides_result.changed | default(true) }}"
     wait: true
     values_files:
       - "{{ open_webui_helm_overrides }}"

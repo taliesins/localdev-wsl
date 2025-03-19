@@ -25,7 +25,7 @@
     chart_ref: kube-prometheus-stack/kube-prometheus-stack
     chart_version: "{{ kube_prometheus_stack_helm_version }}"
     create_namespace: true
-    update_repo_cache: kube_prometheus_stack_helm_overrides_result.changed | default(true)
+    update_repo_cache: "{{ kube_prometheus_stack_helm_overrides_result.changed | default(true) }}"
     wait: true
     values_files:
       - "{{ kube_prometheus_stack_helm_overrides }}"

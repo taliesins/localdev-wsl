@@ -8,3 +8,4 @@ prerequisite_packages:
   - open-iscsi
   - tmux
   - fzf
+  - python3-netaddr

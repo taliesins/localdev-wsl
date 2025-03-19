@@ -9,11 +9,11 @@
 
   ### Comment out roles you don't need ###
   roles:
-    # - {role: 'packages', tags: 'packages'}
+    - {role: 'packages', tags: 'packages'}
     # - {role: 'shell', tags: 'shell'}
     # - {role: 'workspace', tags: 'workspace'}
-    # - {role: 'ops', tags: 'ops'}
-    - {role: 'kubernetes', tags: 'kubernetes'}
+    - {role: 'ops', tags: 'ops'}
+    #- {role: 'kubernetes', tags: 'kubernetes'}
 
   ### Change to your user! ###
   user: "{{ default_user }}"

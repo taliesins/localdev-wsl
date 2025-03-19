@@ -1,44 +1,74 @@
-# external_coredns_helm_version: {{ external_coredns_helm_version }}
+# external_coredns_helm_version: "{{ external_coredns_helm_version }}"
 isClusterService: false
 replicaCount: 1
 
 service:
-  clusterIP: {{ external_coredns_primary_dns_ipv4 }}
-  clusterIPs: [{{ external_coredns_primary_dns_ipv4 }}]
+{% if external_coredns_primary_dns_ipv4 %}
+  clusterIP: "{{ external_coredns_primary_dns_ipv4 }}"
+{% elif external_coredns_primary_dns_ipv6 %}
+  clusterIP: "{{ external_coredns_primary_dns_ipv6 }}"
+{% endif %}
+  clusterIPs:
+{% if external_coredns_primary_dns_ipv4 %}
+    - "{{ external_coredns_primary_dns_ipv4 }}"
+{% endif %}
+{% if external_coredns_primary_dns_ipv6 %}
+    - "{{ external_coredns_primary_dns_ipv6 }}"
+{% endif %}
+{% if external_coredns_primary_dns_ipv4 and external_coredns_primary_dns_ipv6 %}
+  ipFamilyPolicy: "PreferDualStack"
+{% elif external_coredns_primary_dns_ipv6 %}
+  ipFamilyPolicy: "SingleStack"
+  ipFamilies: ["IPv6"]
+{% else %}
+  ipFamilyPolicy: "SingleStack"
+  ipFamilies: ["IPv4"]
+{% endif %}
   port: 53
   udpPort: 53
-  annotations: {}  
+  annotations: {}
+
 # Default zone is what Kubernetes recommends:
 # https://kubernetes.io/docs/tasks/administer-cluster/dns-custom-nameservers/#coredns-configmap-options
 
 servers:
-- zones:
-  - zone: .
-  port: 53
-  plugins:
-  - name: errors
-  # Serves a /health endpoint on :8080, required for livenessProbe
-  - name: health
-    configBlock: |-
-      lameduck 5s
-  - name: etcd
-    parameters: {{ external_coredns_domain }}
-    configBlock: |-
-      endpoint {{ external_coredns_etcd_address }}
-      tls /etc/tls/tls.crt /etc/tls/tls.key /etc/tls/ca.crt
-      path /coredns
-  - name: cache
-    parameters: 30
-  # - name: forward
-  - name: reload
-  - name: log
-  - name: loadbalance
-  - name: loop
-  # Serves a /metrics endpoint on :9153, required for serviceMonitor
-  - name: prometheus
-    parameters: 0.0.0.0:9153
-  # Serves a /ready endpoint on :8181, required for readinessProbe
-  - name: ready
+  - zones:
+      - zone: .
+    port: 53
+    plugins:
+      - name: errors  # Log DNS errors
+      - name: health  # Provides a health check
+        configBlock: |-
+          lameduck 5s
+      - name: ready  # Readiness check
+      - name: prometheus  # Expose metrics for monitoring
+        parameters: 0.0.0.0:9153
+      - name: log  # Log DNS queries (optional, useful for debugging)
+      - name: cache  # Cache responses for better performance
+        parameters: 30
+      - name: reload  # Allows dynamic configuration updates
+      - name: etcd  # Retrieves DNS data from ETCD
+        parameters: "{{ external_coredns_domain }}"
+        configBlock: |-
+          endpoint {{ external_coredns_etcd_address }}
+          credentials {$ETCD_USERNAME} {$ETCD_PASSWORD}
+          tls /etc/tls/tls.crt /etc/tls/tls.key /etc/tls/ca.crt
+          path /skydns
+      # - name: forward (optional, uncomment if you need fallback resolution)
+      - name: loop  # Prevents infinite recursion, should NOT be last
+      - name: loadbalance  # Load balance requests across available backends
+
+extraEnv:
+  - name: ETCD_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: external-coredns-etcd-credentials
+        key: username
+  - name: ETCD_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: external-coredns-etcd-credentials
+        key: password
 
 extraVolumes:
   - name: ca-certificates-volume

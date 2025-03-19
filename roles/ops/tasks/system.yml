@@ -1,0 +1,136 @@
+- name: Set sysctl parameters
+  become: true
+  ansible.builtin.sysctl:  
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    sysctl_file: /etc/sysctl.conf
+    reload: no
+  loop:
+    - { name: "kernel.keys.root_maxbytes", value: "25000000" }
+    - { name: "kernel.keys.root_maxkeys", value: "1000000" }
+    - { name: "kernel.panic", value: "10" }
+    - { name: "kernel.panic_on_oops", value: "1" }
+
+    # Set vm settings
+    - { name: "vm.overcommit_memory", value: "1" }
+    - { name: "vm.panic_on_oom", value: "0" }
+
+    # Allow more open files
+    - { name: "fs.inotify.max_user_instances", value: "8192" }
+    - { name: "fs.inotify.max_user_watches", value: "1048576" }
+    - { name: "fs.inotify.max_queued_events", value: "32768" }
+
+    # Uncomment the next two lines to enable Spoof protection (reverse-path filter)
+    # Turn on Source Address Verification in all interfaces to
+    # prevent some spoofing attacks
+    #- { name: "net.ipv4.conf.default.rp_filter", value: "1" }
+    #- { name: "net.ipv4.conf.all.rp_filter", value: "1" }
+
+    # Uncomment the next line to enable TCP/IP SYN cookies
+    # See http://lwn.net/Articles/277146/
+    # Note: This may impact IPv6 TCP sessions too
+    #- { name: "net.ipv4.tcp_syncookies", value: "1" }
+
+    # Uncomment the next line to enable packet forwarding for IPv4
+    - { name: "net.ipv4.ip_forward", value: "1" }
+
+    # Uncomment the next line to enable packet forwarding for IPv6
+    #  Enabling this option disables Stateless Address Autoconfiguration
+    #  based on Router Advertisements for this host
+    # Enable IPv6 forwarding
+    - { name: "net.ipv6.conf.default.forwarding", value: "1" }
+    - { name: "net.ipv6.conf.all.forwarding", value: "1" }
+
+    - { name: "net.ipv6.conf.default.accept_ra", value: "0" }
+    - { name: "net.ipv6.conf.all.accept_ra", value: "0" }
+    - { name: "net.ipv6.conf.eth0.accept_ra", value: "2" }
+
+    # Enable IPv4 ARP proxying
+    - { name: "net.ipv4.conf.default.proxy_arp", value: "1" }
+    - { name: "net.ipv4.conf.all.proxy_arp", value: "1" }
+    - { name: "net.ipv4.conf.eth0.proxy_arp", value: "1" }
+
+    # Enable IPv6 NDP proxying
+    - { name: "net.ipv6.conf.default.proxy_ndp", value: "1" }
+    - { name: "net.ipv6.conf.all.proxy_ndp", value: "1" }
+    - { name: "net.ipv6.conf.eth0.proxy_ndp", value: "1" }
+
+    # Do not accept ICMP redirects (prevent MITM attacks)
+    - { name: "net.ipv4.conf.default.accept_redirects", value: "1" }
+    - { name: "net.ipv4.conf.all.accept_redirects ", value: "1" }
+    - { name: "net.ipv6.conf.default.accept_redirects", value: "1" }
+    - { name: "net.ipv6.conf.all.accept_redirects ", value: " 1" }
+
+    # _or_
+    # Accept ICMP redirects only for gateways listed in our default
+    # gateway list (enabled by default)
+    # - { name: "net.ipv4.conf.all.secure_redirects ", value: " 1" }
+    #
+    # Do not send ICMP redirects (we are not a router)
+    - { name: "net.ipv4.conf.default.send_redirects", value: "1" }
+    - { name: "net.ipv4.conf.all.send_redirects ", value: " 1" }
+
+    # Do not accept IP source route packets (we are not a router)
+    - { name: "net.ipv4.conf.default.accept_source_route", value: "1" }
+    - { name: "net.ipv4.conf.all.accept_source_route ", value: " 1" }
+    - { name: "net.ipv6.conf.all.accept_source_route ", value: " 1" }
+
+    # Log Martian Packets
+    #- { name: "net.ipv4.conf.default.log_martians", value: "1" }
+    #- { name: "net.ipv4.conf.all.log_martians ", value: " 1" }
+
+    # Enable Smart congestion control
+    - { name: "net.core.default_qdisc", value: "fq" }
+
+    #to see whats available: sysctl net.ipv4.tcp_available_congestion_control, this covers ipv6 too
+    - { name: "net.ipv4.tcp_congestion_control", value: "bbr" }
+    #to see whats available: sysctl net.ipv4.tcp_allowed_congestion_control
+
+    # this sets ipv4 and ipv6
+    - { name: "net.ipv4.ip_local_reserved_ports", value: "30000-32767" }
+
+    - { name: "net.bridge.bridge-nf-call-iptables", value: "1" }
+    - { name: "net.bridge.bridge-nf-call-ip6tables", value: "1" }
+    - { name: "net.bridge.bridge-nf-call-arptables", value: "1" }
+  register: sysctl_changes
+
+- name: Reload sysctl if any changes were made
+  ansible.builtin.command: sysctl --system
+  when: sysctl_changes.changed
+
+- name: Disable and mask power management services
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    masked: yes
+    enabled: no
+    state: stopped
+  loop:
+    - sleep.target
+    - suspend.target
+    - hibernate.target
+    - hybrid-sleep.target
+
+- name: Get status of security services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+  loop:
+    - apparmor.service
+    - firewalld.service
+    - swap.target
+  register: service_status
+  ignore_errors: true  # Ignore errors if the service does not exist
+
+- name: Disable and stop security services if they exist
+  ansible.builtin.systemd:
+    name: "{{ item.item }}"
+    enabled: no
+    state: stopped
+  loop: "{{ service_status.results }}"
+  when: item.status.Active is defined
+
+- name: Disable swap
+  become: true
+  ansible.builtin.command: swapoff -a
+  changed_when: false

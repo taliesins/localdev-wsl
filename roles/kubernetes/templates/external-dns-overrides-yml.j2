@@ -1,1 +1,63 @@
 # external_dns_helm_version: {{ external_dns_helm_version }}
+provider: 
+  name: coredns
+ 
+sources:
+#  - service
+  - ingress
+
+env:
+  - name: ETCD_URLS
+    value: "{{ external_dns_etcd_address }}"
+  - name: ETCD_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: external-dns-etcd-credentials
+        key: username
+  - name: ETCD_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: external-dns-etcd-credentials
+        key: password
+  - name: ETCD_CERT_FILE
+    value: "/etc/tls/tls.crt"
+  - name: ETCD_CA_FILE
+    value: "/etc/tls/ca.crt"    
+  - name: ETCD_KEY_FILE
+    value: "/etc/tls/tls.key"
+  - name: ETCD_TLS_SERVER_NAME
+    value: "etcd.etcd.svc.cluster.local"
+  - name: ETCD_TLS_INSECURE
+    value: "false"
+
+extraVolumes:
+  - name: ca-certificates-volume
+    configMap:
+      name: ca-bundle
+      items:
+        - key: ca-bundle.pem
+          path: ca-bundle.pem
+  - name: etcd-certificates-volume
+    secret:
+      secretName: external-dns-etcd-tls-secret
+      items:
+        - key: tls.crt
+          path: tls.crt
+        - key: tls.key
+          path: tls.key
+        - key: ca.crt
+          path: ca.crt
+
+extraVolumeMounts:
+  - mountPath: /etc/ssl/certs/ca-certificates.crt
+    name: ca-certificates-volume
+    subPath: ca-bundle.pem
+  - name: etcd-certificates-volume
+    mountPath: /etc/tls/tls.crt
+    subPath: tls.crt
+  - name: etcd-certificates-volume
+    mountPath: /etc/tls/tls.key
+    subPath: tls.key
+  - name: etcd-certificates-volume
+    mountPath: /etc/tls/ca.crt
+    subPath: ca.crt

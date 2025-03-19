@@ -49,7 +49,7 @@
     chart_ref: k8s-gateway/k8s-gateway
     chart_version: "{{ k8s_gateway_helm_version }}"
     create_namespace: true
-    update_repo_cache: k8s_gateway_secondary_helm_overrides_result.changed | default(true)
+    update_repo_cache: "{{ k8s_gateway_secondary_helm_overrides_result.changed | default(true) }}"
     wait: true
     values_files:
       - "{{ k8s_gateway_secondary_helm_overrides }}"

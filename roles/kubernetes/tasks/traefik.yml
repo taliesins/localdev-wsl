@@ -33,7 +33,7 @@
     chart_ref: traefik/traefik
     chart_version: "{{ traefik_helm_version }}"
     create_namespace: true
-    update_repo_cache: traefik_helm_overrides_result.changed | default(true)
+    update_repo_cache: "{{ traefik_helm_overrides_result.changed | default(true) }}"
     wait: true
     values_files:
       - "{{ traefik_helm_overrides }}"

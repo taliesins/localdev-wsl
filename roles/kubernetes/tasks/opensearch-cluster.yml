@@ -27,7 +27,7 @@
     chart_ref: opensearch-cluster/opensearch-cluster
     chart_version: "{{ opensearch_cluster_helm_version }}"
     create_namespace: true
-    update_repo_cache: opensearch_cluster_helm_overrides_result.changed | default(true)
+    update_repo_cache: "{{ opensearch_cluster_helm_overrides_result.changed | default(true) }}"
     wait: true
     values_files:
       - "{{ opensearch_cluster_helm_overrides }}"

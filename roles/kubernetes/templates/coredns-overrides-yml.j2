@@ -1,8 +1,27 @@
 # coredns_helm_version: {{ coredns_helm_version }}
 
 service:
-  clusterIP: {{ coredns_primary_dns_ipv4 }}
-  clusterIPs: [{{ coredns_primary_dns_ipv4 }}]
+{% if coredns_primary_dns_ipv4 %}
+  clusterIP: "{{ coredns_primary_dns_ipv4 }}"
+{% elif coredns_primary_dns_ipv6 %}
+  clusterIP: "{{ coredns_primary_dns_ipv6 }}"
+{% endif %}
+  clusterIPs:
+{% if coredns_primary_dns_ipv4 %}
+    - "{{ coredns_primary_dns_ipv4 }}"
+{% endif %}
+{% if coredns_primary_dns_ipv6 %}
+    - "{{ coredns_primary_dns_ipv6 }}"
+{% endif %}
+{% if coredns_primary_dns_ipv4 and coredns_primary_dns_ipv6 %}
+  ipFamilyPolicy: "PreferDualStack"
+{% elif coredns_primary_dns_ipv6 %}
+  ipFamilyPolicy: "SingleStack"
+  ipFamilies: ["IPv6"]
+{% else %}
+  ipFamilyPolicy: "SingleStack"
+  ipFamilies: ["IPv4"]
+{% endif %}
 # Default zone is what Kubernetes recommends:
 # https://kubernetes.io/docs/tasks/administer-cluster/dns-custom-nameservers/#coredns-configmap-options
 servers:
@@ -42,6 +61,9 @@ servers:
   - name: forward
     parameters: |-
       . {{ coredns_upstream_dnsserver }}
+
+      
+
   - name: cache
     parameters: 30
   - name: loop

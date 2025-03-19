@@ -21,9 +21,9 @@ extraSANs:
 # 'extraKubeletServerArgs' is extra arguments to add to the local node kubelet.
 # Set a value to null to remove it from the arguments.
 extraKubeletArgs:
-  #--network-plugin: cni
-  #--cni-bin-dir: /opt/cni/bin
-  #--allow-privileged: true
+  --network-plugin: cni
+  --cni-bin-dir: /opt/cni/bin
+  --allow-privileged: true
   --cluster-domain: {{ microk8s_cluster_domain }}
   --cluster-dns: {{ microk8s_cluster_dns }}
 
@@ -32,4 +32,5 @@ addons:
   - name: helm3
   - name: host-access:ip={{ microk8s_host_access_ip }}
   - name: hostpath-storage
-  - name: metallb:{{ microk8s_metallb_ip_range }}
+  - name: cilium
+#  - name: metallb:{{ microk8s_metallb_ip_range }}

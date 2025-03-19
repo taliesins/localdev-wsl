@@ -26,7 +26,7 @@
     chart_ref: postgres-operator/postgres-operator
     chart_version: "{{ postgres_operator_helm_version }}"
     create_namespace: true
-    update_repo_cache: postgres_operator_helm_overrides_result.changed | default(true)
+    update_repo_cache: "{{ postgres_operator_helm_overrides_result.changed | default(true) }}"
     wait: true
     values_files:
       - "{{ postgres_operator_helm_overrides }}"

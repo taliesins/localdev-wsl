@@ -1,0 +1,68 @@
+# /etc/rancher/rke2/config.yaml
+write-kubeconfig-mode: "0644"
+disable-kube-proxy: true
+
+disable-apiserver: false
+disable-controller-manager: false
+disable-scheduler: false
+disable-cloud-controller: false
+disable-etcd: false
+
+disable:
+  - rke2-coredns
+  - rke2-ingress-nginx
+  - rke2-metrics-server
+  - rke2-snapshot-controller
+  - rke2-snapshot-controller-crd
+  - rke2-snapshot-validation-webhook
+  - rke2-runtimeclasses
+
+tls-san:
+{% for dns_name in (rke2_external_dns_names) %}
+  - "{{ dns_name }}"
+{% endfor %}
+  - "kubernetes.default.svc.cluster.local"
+  - "kubernetes.default.svc"
+  - "kubernetes.default"
+  - "kubernetes"
+{% for ip in rke2_node_ips %}
+  - "{{ ip }}"
+{% endfor %}
+{% for ip in rke2_internal_node_ips %}
+  - "{{ ip }}"
+{% endfor %}
+  - "localhost"
+  - "127.0.0.1"
+  - "::1"
+  - "::"
+  - "0.0.0.0"
+
+#tls-san-security: false
+bind-address: "{{ rke2_bind_address }}"
+#advertise-address: "{{ rke2_advertise_address }}"
+node-name: "{{ node_name }}"
+
+# Networking settings (MUST be single string, not list)/
+#node-ip: "{{ rke2_node_ips | join(',') }}"
+#node-external-ip: "{{ rke2_node_external_ips | join(',') }}"
+
+# Networking settings (MUST be single string, not list)
+cluster-cidr: "{{ rke2_cluster_cidrs | join(',') }}"
+service-cidr: "{{ rke2_service_cidrs | join(',') }}"
+
+# DNS settings (list format)
+cluster-dns: "{{ rke2_cluster_dns_ips | join(',') }}"
+cluster-domain: "{{ rke2_cluster_domain }}"
+
+# Disable CNI (using cilium)
+cni:
+  - none
+
+node-taint:
+  - "node.cilium.io/agent-not-ready=true:NoExecute"
+
+#kubelet-arg:
+#  - "--node-ip={{ rke2_node_ips | join(',') }}" # Comma seperated list. Don't include loopback addresses
+
+#kube-apiserver-arg:
+#  - "--kubelet-preferred-address-types=Hostname,InternalDNS,InternalIP,ExternalDNS,ExternalIP"

@@ -30,3 +30,57 @@ spec:
   usages:
     - server auth
     - client auth
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: external-secrets-etcd-reader
+  namespace: etcd
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]
+    resourceNames: ["etcd-root-credentials"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: external-secrets-etcd-reader-binding
+  namespace: etcd
+subjects:
+  - kind: ServiceAccount
+    name: external-secrets
+    namespace: external-secrets
+roleRef:
+  kind: Role
+  name: external-secrets-etcd-reader
+  apiGroup: rbac.authorization.k8s.io
+
+---
+
+apiVersion: external-secrets.io/v1beta1
+kind: ClusterSecretStore
+metadata:
+  name: etcd-cluster-secret-store
+  namespace: external-secrets
+spec:
+  provider:
+    kubernetes:
+      remoteNamespace: etcd
+      auth:
+        serviceAccount:
+          name: external-secrets
+          namespace: external-secrets
+      server:
+        caProvider:
+          key: ca-bundle.pem
+          name: ca-bundle
+          namespace: external-secrets
+          type: ConfigMap
+        url: kubernetes.default
+
+---

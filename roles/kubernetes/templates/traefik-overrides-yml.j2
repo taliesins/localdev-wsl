@@ -71,12 +71,12 @@ ports:
 #    sniStrict: true
 #    preferServerCipherSuites: true
 additionalArguments:
-  - "--entryPoints.web.forwardedHeaders.trustedIPs={{ traefik_trusted_ips }}"
-  - "--entryPoints.websecure.forwardedHeaders.trustedIPs={{ traefik_trusted_ips }}"
-# - "--entryPoints.pop3s.forwardedHeaders.trustedIPs={{ traefik_trusted_ips }}"
-# - "--entryPoints.imaps.forwardedHeaders.trustedIPs={{ traefik_trusted_ips }}"
-# - "--entryPoints.smtp.forwardedHeaders.trustedIPs={{ traefik_trusted_ips }}"
-# - "--entryPoints.smtpd.forwardedHeaders.trustedIPs={{ traefik_trusted_ips }}"
+  - "--entryPoints.web.forwardedHeaders.trustedIPs={{ traefik_trusted_ips | join(',') }}"
+  - "--entryPoints.websecure.forwardedHeaders.trustedIPs={{ traefik_trusted_ips | join(',') }}"
+# - "--entryPoints.pop3s.forwardedHeaders.trustedIPs={{ traefik_trusted_ips | join(',') }}"
+# - "--entryPoints.imaps.forwardedHeaders.trustedIPs={{ traefik_trusted_ips | join(',') }}"
+# - "--entryPoints.smtp.forwardedHeaders.trustedIPs={{ traefik_trusted_ips | join(',') }}"
+# - "--entryPoints.smtpd.forwardedHeaders.trustedIPs={{ traefik_trusted_ips | join(',') }}"
 experimental:
   kubernetesGateway:
     enabled: true

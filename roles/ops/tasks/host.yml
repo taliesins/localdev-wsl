@@ -1,0 +1,241 @@
+
+# - name: Debug ansible_facts
+#   debug:
+#     var: ansible_facts
+
+
+      # "dns": {
+      #       "domain": "lan.talifun.com",
+      #       "nameservers": [
+      #           "10.1.0.1"
+      #       ],
+      #       "search": [
+      #           "lan.talifun.com"
+      #       ]
+      #   },
+
+      #       "eth0": {
+      #       "active": true,
+      #       "device": "eth0",
+      #       "ipv4": {
+      #           "address": "10.1.0.161",
+      #           "broadcast": "10.1.0.255",
+      #           "netmask": "255.255.255.0",
+      #           "network": "10.1.0.0",
+      #           "prefix": "24"
+      #       },
+      #       "ipv6": [
+      #           {
+      #               "address": "fe80::5cbb:f6ff:fe9e:eefa",
+      #               "prefix": "64",
+      #               "scope": "link"
+      #           }
+      #       ],
+      #       "macaddress": "5e:bb:f6:9e:ee:fa",
+      #       "mtu": 1500,
+      #       "pciid": "56324d01-4529-445a-92cc-9b495ba1c195",
+      #       "promisc": false,
+      #       "speed": 2500,
+      #       "type": "ether"
+      #   },
+
+
+- name: Gather facts
+  setup:
+
+- name: Get primary network interface
+  set_fact:
+    wsl_host_primary_interface: "{{ ansible_default_ipv4.interface }}"
+
+- name: Get all IPv4 addresses on the primary interface
+  set_fact:
+    wsl_host_all_ipv4_addresses: ""
+
+- name: Get all IPv4 addresses on the primary interface
+  set_fact:
+    wsl_host_all_ipv4_addresses: >-
+      {{
+        (ansible_facts[wsl_host_primary_interface]['ipv4']
+        if ansible_facts[wsl_host_primary_interface]['ipv4'] is iterable and ansible_facts[wsl_host_primary_interface]['ipv4'] is not mapping
+        else [ansible_facts[wsl_host_primary_interface]['ipv4']]) | 
+        map(attribute='address') | reject('equalto', '')
+      }}
+  when: ansible_facts[wsl_host_primary_interface]['ipv4'] is defined
+
+- name: Get all IPv6 addresses on the primary interface
+  set_fact:
+    wsl_host_all_ipv6_addresses: ""
+
+- name: Get all IPv6 addresses on the primary interface
+  set_fact:
+    wsl_host_all_ipv6_addresses: >-
+      {{
+        (ansible_facts[wsl_host_primary_interface]['ipv6']
+        if ansible_facts[wsl_host_primary_interface]['ipv6'] is iterable and ansible_facts[wsl_host_primary_interface]['ipv6'] is not mapping
+        else [ansible_facts[wsl_host_primary_interface]['ipv6']]) | 
+        map(attribute='address') | reject('equalto', '')
+      }}
+  when: ansible_facts[wsl_host_primary_interface]['ipv6'] is defined
+
+- name: Combine all addresses (IPv4 + IPv6)
+  set_fact:
+    wsl_host_all_all_addresses: "{{ wsl_host_all_ipv4_addresses + wsl_host_all_ipv6_addresses }}"
+
+- name: Select Local IPv4 address (RFC1918) if available, otherwise fallback to public IPv4
+  set_fact:
+    wsl_host_primary_ipv4_address: ""
+
+- name: Select Local IPv4 address (RFC1918) if available, otherwise fallback to public IPv4
+  set_fact:
+    wsl_host_primary_ipv4_address: >-
+      {{ (wsl_host_all_ipv4_addresses | select('regex', '^(10\..+|172\.(1[6-9]|2[0-9]|3[01])\..+|192\.168\..+)') | list | first) 
+          | default(wsl_host_all_ipv4_addresses | list | first, true) 
+          | default('', true) }}
+  when: wsl_host_all_ipv4_addresses | length > 0
+
+- name: Select LUA IPv6 address (fc00::/7) if available, otherwise fallback to GUA (2000::/3)
+  set_fact:
+    wsl_host_primary_ipv6_address: ""
+
+- name: Select LUA IPv6 address (fc00::/7) if available, otherwise fallback to GUA (2000::/3)
+  set_fact:
+    wsl_host_primary_ipv6_address: >-
+      {{ (wsl_host_all_ipv6_addresses | select('regex', '^f[cd][0-9a-fA-F]{2}:.+') | list | first) 
+          | default(wsl_host_all_ipv6_addresses | select('regex', '^2[0-9a-fA-F]:.+') | list | first, true) 
+          | default('', true) }}
+  when: wsl_host_all_ipv6_addresses | length > 0
+
+- name: Combine primary IPv4 and IPv6 addresses
+  set_fact:
+    wsl_host_primary_all_address: "{{ ([wsl_host_primary_ipv4_address] if wsl_host_primary_ipv4_address != '' else []) + ([wsl_host_primary_ipv6_address] if wsl_host_primary_ipv6_address != '' else []) }}"
+
+- name: Get IPv4 CIDR of primary interface
+  set_fact:
+    wsl_host_primary_ipv4_cidr: ""
+
+- name: Get IPv4 CIDR of primary interface
+  set_fact:
+    wsl_host_primary_ipv4_cidr: "{{ item.address }}/{{ item.prefix }}"
+  with_items: >-
+      {{
+        (ansible_facts[wsl_host_primary_interface]['ipv4']
+        if ansible_facts[wsl_host_primary_interface]['ipv4'] is iterable and ansible_facts[wsl_host_primary_interface]['ipv4'] is not mapping
+        else [ansible_facts[wsl_host_primary_interface]['ipv4']])
+      }}
+  loop_control:
+    label: "{{ item.address }}/{{ item.prefix }}"
+  when:
+    - wsl_host_primary_ipv4_address != ''
+    - item.address == wsl_host_primary_ipv4_address
+
+- name: Get IPv4 network CIDR of primary interface
+  set_fact:
+    wsl_host_primary_ipv4_network_cidr: ""
+
+- name: Get IPv4 network CIDR of primary interface
+  set_fact:
+    wsl_host_primary_ipv4_network_cidr: "{{ (item.address + '/' + (item.prefix | string)) | ansible.utils.ipaddr('network') }}/{{ item.prefix | string }}"
+  with_items: >-
+      {{
+        (ansible_facts[wsl_host_primary_interface]['ipv4']
+        if ansible_facts[wsl_host_primary_interface]['ipv4'] is iterable and ansible_facts[wsl_host_primary_interface]['ipv4'] is not mapping
+        else [ansible_facts[wsl_host_primary_interface]['ipv4']])
+      }}
+  loop_control:
+    label: "{{ (item.address + '/' + (item.prefix | string)) | ansible.utils.ipaddr('network') }}/{{ item.prefix | string }}"
+  when:
+    - wsl_host_primary_ipv4_address != ''
+    - item.address == wsl_host_primary_ipv4_address
+
+- name: Get IPv6 CIDR of primary interface
+  set_fact:
+    wsl_host_primary_ipv6_cidr: ""
+
+- name: Get IPv6 CIDR of primary interface
+  set_fact:
+    wsl_host_primary_ipv6_cidr: "{{ item.address }}/{{ item.prefix }}"
+  with_items: >-
+      {{
+        (ansible_facts[wsl_host_primary_interface]['ipv6']
+        if ansible_facts[wsl_host_primary_interface]['ipv6'] is iterable and ansible_facts[wsl_host_primary_interface]['ipv6'] is not mapping
+        else [ansible_facts[wsl_host_primary_interface]['ipv6']])
+      }}
+  loop_control:
+    label: "{{ item.address }}/{{ item.prefix }}"
+  when:
+    - wsl_host_primary_ipv6_address != ''
+    - item.address == wsl_host_primary_ipv6_address
+
+- name: Get IPv6 network CIDR of primary interface
+  set_fact:
+    wsl_host_primary_ipv6_network_cidr: ""
+
+- name: Get IPv6 network CIDR of primary interface
+  set_fact:
+    wsl_host_primary_ipv6_network_cidr: "{{ (item.address + '/' + (item.prefix | string)) | ansible.utils.ipaddr('network') }}/{{ item.prefix | string }}"
+  with_items: >-
+      {{
+        (ansible_facts[wsl_host_primary_interface]['ipv6']
+        if ansible_facts[wsl_host_primary_interface]['ipv6'] is iterable and ansible_facts[wsl_host_primary_interface]['ipv6'] is not mapping
+        else [ansible_facts[wsl_host_primary_interface]['ipv6']])
+      }}
+  loop_control:
+    label: "{{ (item.address + '/' + (item.prefix | string)) | ansible.utils.ipaddr('network') }}/{{ item.prefix | string }}"
+  when:
+    - wsl_host_primary_ipv6_address != ''
+    - item.address == wsl_host_primary_ipv6_address
+
+- name: Combine primary IPv4 and IPv6 CIDRs
+  set_fact:
+    wsl_host_primary_all_cidr: >-
+      {{ ([wsl_host_primary_ipv4_cidr] if wsl_host_primary_ipv4_cidr | default('') else []) +
+         ([wsl_host_primary_ipv6_cidr] if wsl_host_primary_ipv6_cidr | default('') else []) }}
+
+- name: Combine primary IPv4 and IPv6 network CIDRs
+  set_fact:
+    wsl_host_primary_all_network_cidr: "{{ ([wsl_host_primary_ipv4_network_cidr] if wsl_host_primary_ipv4_network_cidr | default('') else []) +
+                                           ([wsl_host_primary_ipv6_network_cidr] if wsl_host_primary_ipv6_network_cidr | default('') else []) }}"
+
+- name: Get DNS servers for primary interface using resolvectl
+  command: "resolvectl dns"
+  register: resolvectl_dns
+  changed_when: false
+  ignore_errors: true  # In case resolvectl is not available
+
+- name: Extract Global and Interface-specific DNS servers from resolvectl
+  set_fact:
+    wsl_host_global_dns_servers: >-
+      {{ resolvectl_dns.stdout_lines | select('search', '^Global: ') | map('regex_replace', '^Global: ', '') | list | first | split(' ') | default([]) }}
+    wsl_host_interface_dns_servers: >-
+      {{ resolvectl_dns.stdout_lines | select('search', '^Link .* \(' ~ wsl_host_primary_interface ~ '\):') | map('regex_replace', '^Link .* \(' ~ wsl_host_primary_interface ~ '\): ', '') | list | first | split(' ') | default([]) }}
+
+- name: Determine IPv4 and IPv6 DNS servers with fallback
+  set_fact:
+    wsl_host_ipv4_dns_servers: >-
+      {{ (wsl_host_interface_dns_servers + wsl_host_global_dns_servers) | select('search', '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$') | list }}
+    wsl_host_ipv6_dns_servers: >-
+      {{ (wsl_host_interface_dns_servers + wsl_host_global_dns_servers) | select('search', '^([a-fA-F0-9:]+:+.*)$') | list }}
+
+- name: Combine primary IPv4 and IPv6 dns servers
+  set_fact:
+    wsl_host_all_dns_servers: "{{ wsl_host_ipv4_dns_servers | default([]) + wsl_host_ipv6_dns_servers | default([]) }}"
+
+- name: Combine all network information
+  set_fact:
+    wsl_host_all_network_info:
+      wsl_host_primary_interface: "{{ wsl_host_primary_interface }}"
+      wsl_host_primary_ipv4_address: "{{ wsl_host_primary_ipv4_address }}"
+      wsl_host_primary_ipv6_address: "{{ wsl_host_primary_ipv6_address }}"
+      wsl_host_primary_all_address: "{{ wsl_host_primary_all_address }}"
+      wsl_host_all_ipv4_addresses: "{{ wsl_host_all_ipv4_addresses }}"
+      wsl_host_all_ipv6_addresses: "{{ wsl_host_all_ipv6_addresses }}"
+      wsl_host_all_all_addresses: "{{ wsl_host_all_all_addresses }}"
+      wsl_host_primary_ipv4_network_cidr: "{{ wsl_host_primary_ipv4_network_cidr }}"
+      wsl_host_primary_ipv6_network_cidr: "{{ wsl_host_primary_ipv6_network_cidr }}"
+      wsl_host_primary_all_network_cidr: "{{ wsl_host_primary_all_network_cidr }}"
+      wsl_host_primary_ipv4_cidr: "{{ wsl_host_primary_ipv4_cidr }}"
+      wsl_host_primary_ipv6_cidr: "{{ wsl_host_primary_ipv6_cidr }}"
+      wsl_host_primary_all_cidr: "{{ wsl_host_primary_all_cidr }}"
+      wsl_host_ipv4_dns_servers: "{{ wsl_host_ipv4_dns_servers }}"
+      wsl_host_ipv6_dns_servers: "{{ wsl_host_ipv6_dns_servers }}"
+      wsl_host_all_dns_servers: "{{ wsl_host_all_dns_servers }}"

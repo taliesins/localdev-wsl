@@ -25,7 +25,7 @@
     chart_ref: cert-manager/cert-manager
     chart_version: "{{ cert_manager_helm_version }}"
     create_namespace: true
-    update_repo_cache: cert_manager_helm_overrides_result.changed | default(true)
+    update_repo_cache: "{{ cert_manager_helm_overrides_result.changed | default(true) }}"
     wait: true
     values_files:
       - "{{ cert_manager_helm_overrides }}"

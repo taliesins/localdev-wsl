@@ -1,0 +1,22 @@
+
+- name: Install required packages for storage
+  become: true
+  ansible.builtin.apt:
+    name:
+      - open-iscsi
+      - xfsprogs
+      - nfs-common
+      - samba
+    state: present
+    update_cache: yes
+
+- name: Check if iscsi_tcp is built into the kernel
+  ansible.builtin.command: "grep -w 'kernel/drivers/scsi/iscsi_tcp.ko' /lib/modules/$(uname -r)/modules.builtin"
+  register: iscsi_tcp_built_in
+  ignore_errors: true
+
+- name: Load iscsi_tcp kernel module if not built-in
+  community.general.modprobe:
+    name: iscsi_tcp
+    state: present
+  when: iscsi_tcp_built_in.rc != 0

@@ -67,42 +67,46 @@
     mode: 'u=rwx,g=rwx,o='
     recurse: true
 
-- name: Create kubectl config for root
+- name: Get MicroK8s config
   become: true
-  ansible.builtin.shell: |
-    /snap/bin/microk8s config > /root/.kube/config
-  args:
-    executable: /bin/bash
-    creates: /root/.kube/config
+  ansible.builtin.command: /snap/bin/microk8s config
+  register: microk8s_config
+  changed_when: false  # Avoid unnecessary changes detection
+  check_mode: no  # Ensure it runs even in check mode
 
-- name: Create kubectl config for user
+- name: Ensure .kube directory exists for root
   become: true
-  ansible.builtin.shell: |
-    /snap/bin/microk8s config > /home/{{ user }}/.kube/config
-    chown {{ user }}:{{ user }} /home/{{ user }}/.kube/config
-  args:
-    executable: /bin/bash
-    creates: /home/{{ user }}/.kube/config
-
-- name: Set file permissions on ~/.kube/config for root
-  become: true
-  changed_when: false
   ansible.builtin.file:
-    path: "/root/.kube/config"
-    state: file
-    owner: 'root'
-    group: 'root'
-    mode: 'u=rw,g=,o='
+    path: /root/.kube
+    state: directory
+    mode: '0700'
 
-- name: Set file permissions on ~/.kube/config for user
+- name: Ensure .kube directory exists for user
   become: true
-  changed_when: false
   ansible.builtin.file:
-    path: "/home/{{ user }}/.kube/config"
-    state: file
-    owner: '{{ user }}'
-    group: '{{ user }}'
-    mode: 'u=rw,g=,o='
+    path: /home/{{ user }}/.kube
+    state: directory
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: '0700'
+
+- name: Update kubectl config for root if changed
+  become: true
+  ansible.builtin.copy:
+    content: "{{ microk8s_config.stdout }}"
+    dest: /root/.kube/config
+    mode: '0600'
+  #diff: true
+
+- name: Update kubectl config for user if changed
+  become: true
+  ansible.builtin.copy:
+    content: "{{ microk8s_config.stdout }}"
+    dest: /home/{{ user }}/.kube/config
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: '0600'
+  #diff: true
 
 - name: Check if nvidia device
   ansible.builtin.stat:

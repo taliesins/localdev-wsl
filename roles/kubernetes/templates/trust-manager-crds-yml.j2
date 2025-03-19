@@ -9,6 +9,10 @@ spec:
   # those issued by Let's Encrypt, Google, Amazon and others.
   - useDefaultCAs: true
 
+  - configMap:
+      name: kube-root-ca.crt
+      key: ca.crt
+
   - secret:
       name: "cert-manager-ca"
       key: "tls.crt"

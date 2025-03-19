@@ -15,6 +15,7 @@
 - name: Install kubernetes dependencies for root
   become: true
   ansible.builtin.pip:
+    break_system_packages: true
     name:
       - pyyaml
       - kubernetes
@@ -24,6 +25,7 @@
   become: true
   become_user: '{{ user }}'
   ansible.builtin.pip:
+    break_system_packages: true
     name:
       - pyyaml
       - kubernetes

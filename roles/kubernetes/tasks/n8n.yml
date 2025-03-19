@@ -25,7 +25,7 @@
     chart_ref: n8n/n8n
     chart_version: "{{ n8n_helm_version }}"
     create_namespace: true
-    update_repo_cache: n8n_helm_overrides_result.changed | default(true)
+    update_repo_cache: "{{ n8n_helm_overrides_result.changed | default(true) }}"
     wait: true
     values_files:
       - "{{ n8n_helm_overrides }}"

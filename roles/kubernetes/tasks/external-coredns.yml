@@ -1,5 +1,26 @@
 # code: language=ansible
 ---
+- name: Create External CoreDNS namespace
+  kubernetes.core.k8s:
+    name: external-coredns
+    api_version: v1
+    kind: Namespace
+    state: present
+
+# - name: Create or update secure credentials for etcd root user in Kubernetes secret
+#   kubernetes.core.k8s:
+#     state: present
+#     definition:
+#       apiVersion: v1
+#       kind: Secret
+#       metadata:
+#         name: external-coredns-etcd-credentials
+#         namespace: external-coredns
+#       type: Opaque
+#       data:
+#         username: "{{ etcd_root_username | b64encode }}"
+#         password: "{{ etcd_root_password | b64encode }}"
+
 - name: External CoreDNS Etcd cert-manager crds Yaml
   become: true
   become_user: '{{ user }}'
@@ -17,7 +38,7 @@
     src: "{{ external_coredns_etcd_cert_manager_crds_yml }}"
     wait: yes
 
-- name: CoreDNS Helm Overrides
+- name: External CoreDNS Helm Overrides
   become: true
   become_user: '{{ user }}'
   ansible.builtin.template:
@@ -26,14 +47,14 @@
     mode: 'u=rw,g=r,o=r'
   register: external_coredns_helm_overrides_result
 
-- name: Add CoreDNS chart repo
+- name: Add External CoreDNS chart repo
   become: true
   become_user: '{{ user }}'
   kubernetes.core.helm_repository:
     name: external-coredns
     repo_url: "https://coredns.github.io/helm"
 
-- name: Deploy CoreDNS helm chart
+- name: Deploy External CoreDNS helm chart
   become: true
   become_user: '{{ user }}'
   kubernetes.core.helm:
@@ -42,8 +63,8 @@
     chart_ref: coredns/coredns
     chart_version: "{{ external_coredns_helm_version }}"
     create_namespace: true
-    update_repo_cache: external_coredns_helm_overrides_result.changed | default(true)
+    update_repo_cache: "{{ external_coredns_helm_overrides_result.changed | default(true) }}"
     wait: true
     values_files:
       - "{{ external_coredns_helm_overrides }}"
-  when: (check_helm_deployment | default(true)) or (external_coredns_helm_overrides_result.changed | default(true))
+  #when: (check_helm_deployment | default(true)) or (external_coredns_helm_overrides_result.changed | default(true))

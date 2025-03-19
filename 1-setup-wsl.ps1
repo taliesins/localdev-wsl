@@ -27,10 +27,23 @@ function Enable-WindowsFeature {
     }
 }
 
-$WslDistribution = "Ubuntu-22.04"
-$WslDistributionInstallerName = "ubuntu2204"
+function Download-File {
+    param (
+        [string]$Uri,
+        [string]$OutputPath
+    )
+    if (-not (Test-Path $OutputPath)) {
+        Write-Output "Downloading $Uri to $OutputPath"
+        Invoke-WebRequest -Uri $Uri -OutFile $OutputPath
+    } else {
+        Write-Output "$OutputPath already exists"
+    }
+}
 
-$WslKernelVersion = '6.11.5'
+$WslDistribution = "Ubuntu-24.04"
+$WslDistributionInstallerName = "ubuntu2404"
+
+$WslKernelVersion = '6.13.6'
 $WslKernelPath = 'c:\data\wsl2'
 
 $WslUsername = 'taliesins'
@@ -53,6 +66,13 @@ $NatIpAddress = '10.152.0.5'
 # if (!$foundInstance) {
 #     wsl --list --online
 #     wsl --install $WslDistribution --no-launch
+
+#     if ($WslDistributionInstallerName -eq "ubuntu2404"){
+#         $UbuntuInstallerFileUrl="https://apps.microsoft.com/3355fde1-dae4-4ed6-bd09-8717bfc15dab"
+#         $UbuntuInstallerTempPath="$($env:LOCALAPPDATA)\Microsoft\WindowsApps\$($WslDistributionInstallerName).exe"
+#         Download-File -Uri $UbuntuInstallerFileUrl -OutputPath $UbuntuInstallerTempPath
+#     }
+
 #     & "$($env:LOCALAPPDATA)\Microsoft\WindowsApps\$($WslDistributionInstallerName)" install --root
 # }
 # wsl --setdefault $WslDistribution
@@ -136,15 +156,15 @@ $NatIpAddress = '10.152.0.5'
 # # Update the system
 # wsl -d $WslDistribution -u $WslUsername bash -c "./scripts/2-install-ansible.sh"
 
-# # $windowsSshPath = "$($env:USERPROFILE)\.ssh"
-# # $gitRepoUri = $(git config --get remote.origin.url)
-# # if (!$gitRepoUri) {
-# #     $gitRepoUri = 'https://github.com/taliesins/localdev-wsl.git'
-# # }
+# $windowsSshPath = "$($env:USERPROFILE)\.ssh"
+# $gitRepoUri = $(git config --get remote.origin.url)
+# if (!$gitRepoUri) {
+#     $gitRepoUri = 'https://github.com/taliesins/localdev-wsl.git'
+# }
 
 wsl -d $WslDistribution -u $WslUsername bash -ic "./scripts/3-install-ansible-solution.sh '$windowsSshPath' '$gitRepoUri' '$NatNetwork' '$NatIpAddress' "
 
-wsl -d $WslDistribution -u $WslUsername bash -c "./scripts/4-run-ansible-solution.sh "
+wsl -d $WslDistribution -u $WslUsername bash -c "./scripts/4-run-ansible-solution.sh"
 
 # # ensure WSL Distro is restarted when first used with user account
 # # wsl -t $WslDistribution

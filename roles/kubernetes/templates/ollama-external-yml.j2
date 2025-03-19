@@ -24,9 +24,12 @@ kind: Endpoints
 metadata:
   name: ollama # Must be equal to Service name for automatic mapping
   namespace: ollama
+
 subsets:
 - addresses:
-  - ip: {{ wsl_host_ipv4_ip }} # IP address of your external service that you would like to proxy requests to
+{% for ip in wsl_host_primary_all_address %}
+  - ip: {{ ip }}  # IP address of your external service that you would like to proxy requests to
+{% endfor %}
   ports:
   - port: 11434
 

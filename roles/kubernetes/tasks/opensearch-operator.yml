@@ -27,7 +27,7 @@
     chart_ref: opensearch-operator/opensearch-operator
     chart_version: "{{ opensearch_operator_helm_version }}"
     create_namespace: true
-    update_repo_cache: opensearch_operator_helm_overrides_result.changed | default(true)
+    update_repo_cache: "{{ opensearch_operator_helm_overrides_result.changed | default(true) }}"
     wait: true
     values_files:
       - "{{ opensearch_operator_helm_overrides }}"

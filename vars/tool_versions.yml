@@ -1,2 +1,4 @@
 # code: language=ansible
 ---
+
+k8s_distribution: "rke2"

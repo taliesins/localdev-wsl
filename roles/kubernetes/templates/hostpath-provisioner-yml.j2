@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: microk8s-hostpath
+  name: hostpath-provisioner
   namespace: kube-system
 
 ---
@@ -11,8 +11,18 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: microk8s-hostpath
+  name: hostpath-provisioner
 rules:
+  - verbs:
+      - get
+      - watch
+      - list
+      - update
+      - create
+    apiGroups: 
+      - coordination.k8s.io
+    resources:
+      - leases
   - verbs:
       - list
       - get
@@ -79,15 +89,15 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: microk8s-hostpath
+  name: hostpath-provisioner
 subjects:
   - kind: ServiceAccount
-    name: microk8s-hostpath
+    name: hostpath-provisioner
     namespace: kube-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: microk8s-hostpath
+  name: hostpath-provisioner
 
 ---
 
@@ -114,7 +124,7 @@ spec:
       volumes:
         - name: pv-volume
           hostPath:
-            path: /var/snap/microk8s/common/default-storage
+            path: {{ host_path_provider_pv_dir }}
             type: ''
       containers:
         - name: hostpath-provisioner
@@ -144,8 +154,8 @@ spec:
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst
-      serviceAccountName: microk8s-hostpath
-      serviceAccount: microk8s-hostpath
+      serviceAccountName: hostpath-provisioner
+      serviceAccount: hostpath-provisioner
       securityContext: {}
       schedulerName: default-scheduler
   strategy:
@@ -161,7 +171,7 @@ spec:
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: microk8s-hostpath
+  name: hostpath-provisioner
   annotations:
     storageclass.kubernetes.io/is-default-class: 'true'
 provisioner: microk8s.io/hostpath

@@ -1,11 +1,35 @@
 # cilium_helm_version: {{ cilium_helm_version }}
 
-containerRuntime: 
-  integration: containerd
-  socketPath: /run/containerd/containerd.sock
+# containerRuntime: 
+#   integration: containerd
+#   socketPath: ccontainerd.sock
 
-k8sServiceHost: 127.0.0.1
+k8sServiceHost: {{ cilium_k8s_service_host }}
 k8sServicePort: 6443
+
+securityContext:
+  privileged: true
+  capabilities:
+    ciliumAgent:
+      - CHOWN
+      - KILL
+      - NET_ADMIN
+      - NET_RAW
+      - IPC_LOCK
+      - SYS_ADMIN
+      - PERFMON
+      - BPF      
+      - SYS_RESOURCE
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    cleanCiliumState:
+      - NET_ADMIN
+      - PERFMON
+      - BPF
+      - SYS_ADMIN
+      - SYS_RESOURCE
 
 cluster:
   # -- Name of the cluster. Only required for Cluster Mesh.
@@ -21,9 +45,16 @@ bandwidthManager:
   enabled: true
   bbr: true
 
+# classic way of BGP in Cilium which is mutual exclusive to bgp control plane
+# bgp:
+#  enabled: false
+#  annouce:
+#    loadbalancerIP: false
+#    podCIDR: false  
+
 # New way of BGP in cilium
-bgpControlPlane:
-  enabled: true
+# bgpControlPlane:
+#  enabled: true
 
 pmtuDiscovery:
   # -- Enable path MTU discovery to send ICMP fragmentation-needed replies to
@@ -43,6 +74,8 @@ bpf:
   # bypass netfilter in the host namespace.
   # @default -- `false`
   hostLegacyRouting: false
+
+  datapathMode: netkit
 
 # -- Clean all eBPF datapath state from the initContainer of the cilium-agent
 # DaemonSet.
@@ -66,71 +99,63 @@ externalIPs:
   # -- Enable ExternalIPs service support.
   enabled: true
 
-# -- Install Iptables rules to skip netfilter connection tracking on all pod
-# traffic. This option is only effective when Cilium is running in direct
-# routing and full KPR mode. Moreover, this option cannot be enabled when Cilium
-# is running in a managed Kubernetes environment or in a chained CNI setup.
-installNoConntrackIptablesRules: false
-
 ipam:
   mode: "cluster-pool"
   # ciliumNodeUpdateRate: "15s"
   operator:
     # -- IPv4 CIDR list range to delegate to individual nodes for IPAM. cluster-pool-ipv4-cidr
-    clusterPoolIPv4PodCIDRList: ["10.42.128.0/17"]
+    clusterPoolIPv4PodCIDRList: {{ cilium_cluster_pool_ipv4_pod_cidr_list }}
     # -- IPv4 CIDR mask size to delegate to individual nodes for IPAM. cluster-pool-ipv4-cidr
-    clusterPoolIPv4MaskSize: 20
+    clusterPoolIPv4MaskSize: {{ cilium_cluster_pool_ipv4_mask_size }}
     # -- IPv6 CIDR list range to delegate to individual nodes for IPAM. cluster-pool-ipv6-cidr
-    clusterPoolIPv6PodCIDRList: ["fd69:fd69:fd69:6::/64"]
+    clusterPoolIPv6PodCIDRList: {{ cilium_cluster_pool_ipv6_pod_cidr_list }}
     # -- IPv6 CIDR mask size to delegate to individual nodes for IPAM. cluster-pool-ipv6-mask-size
-    clusterPoolIPv6MaskSize: 80
+    clusterPoolIPv6MaskSize: {{ cilium_cluster_pool_ipv6_mask_size }}
+
+# Only turn this on when we want to use egress gateway and have setup all the rules we need
+# # -- Configure the eBPF-based ip-masq-agent
+# ipMasqAgent:
+#  enabled: true
+#  # # the config of nonMasqueradeCIDRs
+#  config:
+#    nonMasqueradeCIDRs: []
+#    masqLinkLocal: true
+#    masqLinkLocalIPv6: false 
 
 ipv4:
-  enabled: true
+  enabled: {{ cilium_ipv4_enabled }}
 
 ipv6:
-  enabled: true
+  enabled: {{ cilium_ipv6_enabled }}
 
 kubeProxyReplacement: "true"
 kubeProxyReplacementHealthzBindAddr: "0.0.0.0:10256"
 
+socketLB:
+  hostNamespaceOnly: true
+
 l2NeighDiscovery:
   # -- Enable L2 neighbor discovery in the agent
-  enabled: false
+  enabled: true
   # -- Override the agent's default neighbor resolution refresh period.
   refreshPeriod: "30s"
 
-# -- Enable Layer 7 network policy.
-# l7Proxy: true
-
 enableIPv4Masquerade: true
-enableIPv6Masquerade: false
+enableIPv6Masquerade: true
+# -- Enables IPv4 BIG TCP support which increases maximum IPv4 GSO/GRO limits for nodes and pods (BIG TCP is not supported in tunneling mode)
+enableIPv4BIGTCP: true
+# -- Enables IPv6 BIG TCP support which increases maximum IPv6 GSO/GRO limits for nodes and pods (BIG TCP is not supported in tunneling mode)
+enableIPv6BIGTCP: true
 
-# do not enable encryption and needs kernel 6.3
-# enableIPv6BIGTCP: false
-# do not enable encryption and needs kernel 6.3
-# enableIPv4BIGTCP: false
-
-# ipv4NativeRoutingCIDR: "10.0.0.0/8"
-# ipv6NativeRoutingCIDR: "fd69:fd69:fd69::/48"
-
-loadBalancer:
-  standalone: false
-  # maglev = more sticky, random
-  algorithm: maglev
-  acceleration: native
-  # snat = source nat, dsr = direct server return (can't be used with tunnel: geneve)
-  mode: snat
-  # opt, ipip = lowest overhead but no multicast, geneve=does all the things
-  dsrDispatch: ipip
-
-tunnel: "geneve"
-# this is auto set by picking tunnel
-# routingMode: "tunnel"
+ipv4NativeRoutingCIDR: "{{ cilium_ipv4_native_routing_cidr }}"
+ipv6NativeRoutingCIDR: "{{ cilium_ipv6_native_routing_cidr }}"
 
 operator:
   # -- Number of replicas to run for the cilium-operator deployment
   replicas: 1
+
+# we want to specify all the pod CIDR blocks and routes
+# autoDirectNodeRoutes: false
 
 # -- Configure L2 announcements
 l2announcements:
@@ -147,8 +172,131 @@ k8sClientRateLimit:
   qps: 15
   burst: 30
 
+# -- Configure L2 pod announcements
+# l2podAnnouncements:
+  # -- Enable L2 pod announcements
+#  enabled: true
+  # -- Interface used for sending Gratuitous ARP pod announcements
+#  interface: "eth0"
+
+# extraConfig:
+#   enable NDP of pods
+#   enable-ipv6-ndp: "true"
+#   ipv6-mcast-device: "eth0"
+#   ipv6-service-range: "fd69:fd69:face:7::/112"
+
+
 # -- Specify which network interfaces can run the eBPF datapath. This means
 # that a packet sent from a pod to a destination outside the cluster will be
 # masqueraded (to an output device IPv4 address), if the output device runs the
 # program. When not specified, probing will automatically detect devices.
-devices: "eth0"
+devices: eth+
+
+# -- Enables experimental support for the detection of new and removed datapath
+# devices. When devices change the eBPF datapath is reloaded and services updated.
+# If "devices" is set then only those devices, or devices matching a wildcard will
+# be considered.
+# enableRuntimeDeviceDetection: true
+
+# endpointRoutes:
+#  # -- Enable use of per endpoint routes instead of routing via
+#  # the cilium_host interface.
+#  enabled: true
+global:
+  nodePort:
+    acceleration: best-effort
+    mode: hybrid
+  bpf:
+    natMax: 841429
+
+config:
+  bpfMapDynamicSizeRatio: 0.003
+
+tunnelProtocol: geneve
+tunnelPort: 6081
+routingMode: native #tunnel
+MTU: 9000
+egressGateway:
+  enabled: false
+
+localRedirectPolicy: true
+
+loadBalancer:
+  standalone: false
+  # maglev = more sticky, random
+  algorithm: maglev
+  # snat = source nat, dsr = direct server return (can't be used with tunnel: geneve)
+  mode: dsr
+  
+  acceleration: best-effort
+
+  # opt, ipip = lowest overhead but no multicast, geneve=does all the things
+  dsrDispatch: opt # geneve
+
+  serviceTopology: true
+
+  l7:
+   backend: disabled
+
+gatewayAPI:
+  enabled: false
+  externalTrafficPolicy: Local
+  secretsNamespace:
+    create: true
+    name: cilium-secrets
+    
+ingressController:
+  enabled: false
+  loadbalancerMode: shared
+  enforceHttps: false
+  default: true
+  defaultSecretNamespace: kube-system
+  defaultSecretName: default-tls
+  secretsNamespace:
+    create: true
+    name: cilium-secrets
+  service:
+    allocateLoadBalancerNodePorts: false
+    externalTrafficPolicy: Local
+
+clustermesh:
+  apiserver:
+    service:
+      externalTrafficPolicy: Local
+      internalTrafficPolicy: Local
+
+l7Proxy: false
+
+envoy:
+  enabled: false
+  prometheus:
+    enabled: true
+  securityContext:
+    privileged: true
+    capabilities:
+      keepCapNetBindService: true
+      envoy:
+        - NET_BIND_SERVICE
+        - CAP_NET_ADMIN
+        - CAP_BPF
+        - NET_ADMIN
+        - SYS_ADMIN
+        - SYS_RESOURCE
+        - PERFMON
+        - BPF
+
+nodeinit:
+  enabled: true
+  securityContext:
+    privileged: true
+
+
+# -- Install Iptables rules to skip netfilter connection tracking on all pod
+# traffic. This option is only effective when Cilium is running in direct
+# routing and full KPR mode. Moreover, this option cannot be enabled when Cilium
+# is running in a managed Kubernetes environment or in a chained CNI setup.
+installNoConntrackIptablesRules: true # true # install-no-conntrack-iptables-rules requires the agent to run in direct routing mode.
+
+# Allow docker network to work
+daemon:
+  enableSourceIPVerification: true

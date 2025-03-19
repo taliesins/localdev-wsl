@@ -25,7 +25,7 @@
     chart_ref: nfs-csi/csi-driver-nfs
     chart_version: "{{ nfs_csi_helm_version }}"
     create_namespace: true
-    update_repo_cache: nfs_csi_helm_overrides_result.changed | default(true)
+    update_repo_cache: "{{ nfs_csi_helm_overrides_result.changed | default(true) }}"
     wait: true
     values_files:
       - "{{ nfs_csi_helm_overrides }}"

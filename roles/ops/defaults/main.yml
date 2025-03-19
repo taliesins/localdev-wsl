@@ -5,27 +5,45 @@
 ## Custom Kernel
 ######################################################
 
-kernel_version: "6.12.10"
+kernel_version: "6.13.6"
 kernel_arch: "x86_64"
 kernel_mirror: "https://github.com/taliesins/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-{{ kernel_version }}"
-kernel_modules_filename: "bzImage-{{ kernel_arch }}-modules_install"
-kernel_optional_filename: "bzImage-{{ kernel_arch }}-optional_install"
+kernel_modules_filename: "bzImage-{{ kernel_arch }}-modules_install-{{ kernel_version }}"
+kernel_optional_filename: "bzImage-{{ kernel_arch }}-optional_install-{{ kernel_version }}"
 kernel_download_dir: "{{ download_path }}"
 
 ######################################################
 ## Docker
 ######################################################
 
-docker_nvidia_test_image: "nvcr.io/nvidia/cuda:12.6.3-base-ubuntu22.04"
-docker_containerd_address: '/var/snap/microk8s/common/run/containerd.sock'
+docker_nvidia_test_image: "nvcr.io/nvidia/cuda:12.8.0-base-ubuntu22.04"
+docker_containerd_address: "{{ '/var/snap/microk8s/common/run/containerd.sock' if k8s_distribution == 'microk8s' else '/run/k3s/containerd/containerd.sock' }}"
 
+# docker_networking_ipv6: "true"
+# docker_networking_bip: "{{ docker_network_bip_ipv4_cidr }}"
+# docker_networking_bip6: "{{ docker_network_bip_ipv6_cidr }}"
+# docker_networking_fixed_cidr: "{{ docker_network_pool_ipv4_cidr }}"
+# docker_networking_fixed_cidr_v6: "{{ docker_network_pool_ipv6_cidr }}"
+
+# "ipv6": {{ docker_networking_ipv6 }},
+# "bip": "{{ docker_networking_bip }}",
+# "bip6": "{{ docker_networking_bip6 }}",
+# "fixed-cidr": "{{ docker_networking_fixed_cidr }}",
+# "fixed-cidr-v6": "{{ docker_networking_fixed_cidr_v6 }}",
+
+#"fixed-cidr": "192.168.1.0/25",
+#"fixed-cidr-v6": "2001:db8::/64",
+# "default-gateway": "192.168.1.254",
+# "default-gateway-v6": "2001:db8:abcd::89",
+# "mtu": 1500,
+# "dns": ["10.1.0.10","fd69:fd69:fd69:100::1"],
 
 ######################################################
 ## Ollama
 ######################################################
 
 # Ollama version number
-ollama_version: '0.5.7'
+ollama_version: '0.5.13'
 
 # The CPU architecture of the Ollama executable to install
 ollama_architecture: 'amd64'
@@ -100,7 +118,7 @@ helm_download_dir: "{{ download_path }}"
 ######################################################
 
 # Cilium version number
-cilium_cli_version: '0.16.23'
+cilium_cli_version: '0.18.2'
 
 # The CPU architecture of the Cilium executable to install
 cilium_cli_architecture: 'amd64'
@@ -142,15 +160,14 @@ nerdctl_install_dir: '/usr/local/share/nerdctl'
 
 # Directory to store files downloaded for NerdCtl
 nerdctl_download_dir: "{{ download_path }}"
-
-nerdctl_containerd_address: '/var/snap/microk8s/common/run/containerd.sock'
+nerdctl_containerd_address: "{{ '/var/snap/microk8s/common/run/containerd.sock' if k8s_distribution == 'microk8s' else '/run/k3s/containerd/containerd.sock' }}"
 
 ######################################################
 ## K3D CLI
 ######################################################
 
 # K3D version number
-k3d_cli_version: '5.7.5'
+k3d_cli_version: '5.8.3'
 
 # The CPU architecture of the K3D executable to install
 k3d_cli_architecture: 'amd64'
@@ -167,6 +184,102 @@ k3d_cli_filename: "k3d-{{ k3d_cli_os }}-{{ k3d_cli_architecture }}"
 k3d_cli_install_dir: '/usr/local/share/k3d'
 
 ######################################################
+## RKE2
+######################################################
+
+rke2_version: "v1.32.2+rke2r1"
+node_name: "{{ cluster_name }}"
+
+rke2_bind_address: "::"
+rke2_ipv4_support: "true"
+rke2_ipv6_support: "false"
+
+rke2_advertise_address: >-
+  {{ wsl_host_primary_ipv6_address if rke2_ipv6_support | bool else wsl_host_primary_ipv4_address }}
+
+rke2_node_ips: >-
+  {{
+    ([wsl_host_primary_ipv4_address] if rke2_ipv4_support | bool else [])
+    +
+    ([wsl_host_primary_ipv6_address] if rke2_ipv6_support | bool else [])
+  }}
+
+rke2_node_external_ips: >-
+  {{
+    ([wsl_host_primary_ipv4_address] if rke2_ipv4_support | bool else [])
+    +
+    ([wsl_host_primary_ipv6_address] if rke2_ipv6_support | bool else [])
+  }}
+
+rke2_internal_node_ips: >-
+  {{
+    ([
+      kubernetes_cluster_service_ipv4_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('1') | ansible.utils.ipaddr('address')
+    ] if rke2_ipv4_support | bool else [])
+    +
+    ([
+      kubernetes_cluster_service_ipv6_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('1') | ansible.utils.ipaddr('address')
+    ] if rke2_ipv6_support | bool else [])
+  }}
+
+rke2_cluster_cidrs: >-
+  {{
+    ([kubernetes_cluster_network_ipv4_cidr] if rke2_ipv4_support | bool else [])
+    +
+    ([kubernetes_cluster_network_ipv6_cidr] if rke2_ipv6_support | bool else [])
+  }}
+
+rke2_service_cidrs: >-
+  {{
+    ([kubernetes_cluster_service_ipv4_cidr] if rke2_ipv4_support | bool else [])
+    +
+    ([kubernetes_cluster_service_ipv6_cidr] if rke2_ipv6_support | bool else [])
+  }}
+
+rke2_cluster_dns_ipv4: >-
+  {{
+    kubernetes_cluster_service_ipv4_cidr
+    | ansible.utils.ipaddr('network')
+    | ansible.utils.ipmath('4')
+    | ansible.utils.ipaddr('address')
+    if rke2_ipv4_support | bool else ''
+  }}
+
+rke2_cluster_dns_ipv6: >-
+  {{
+    kubernetes_cluster_service_ipv6_cidr
+    | ansible.utils.ipaddr('network')
+    | ansible.utils.ipmath('4')
+    | ansible.utils.ipaddr('address')
+    if rke2_ipv6_support | bool else ''
+  }}
+
+rke2_cluster_dns_ips_ipv4_only: >-
+  {{
+    [rke2_cluster_dns_ipv4] if rke2_ipv4_support | bool else []
+  }}
+
+rke2_cluster_dns_ips_ipv6_only: >-
+  {{
+    [rke2_cluster_dns_ipv6] if rke2_ipv6_support | bool else []
+  }}
+
+rke2_cluster_dns_ips: >-
+  {{
+    ( [rke2_cluster_dns_ipv4] if rke2_ipv4_support | bool else [] )
+    +
+    ( [rke2_cluster_dns_ipv6] if rke2_ipv6_support | bool else [] )
+  }}
+
+rke2_external_dns_names: >-
+  {{
+    [cluster_name ~ '.' ~ tld, cluster_name]
+    + ([ansible_hostname] if ansible_hostname != cluster_name else [])
+    + ([ansible_fqdn] if '.' in ansible_fqdn and ansible_fqdn | regex_search('[^.]\.[^.]+$') and ansible_fqdn != (cluster_name ~ '.' ~ tld) else [])
+  }}
+rke2_cluster_domain: "cluster.local"
+
+######################################################
 ## microk8s
 ######################################################
 
@@ -181,12 +294,12 @@ microk8s_ipv6_support: "false"
 microk8s_ipv6_cluster_cidr: "{{ kubernetes_cluster_network_ipv6_cidr }}"
 microk8s_ipv6_service_cidr: "{{ kubernetes_cluster_service_ipv6_cidr }}"
 
-microk8s_extra_sans:
-  - "{{ wsl_host_ipv4_ip }}"
-  - "{{ kubernetes_cluster_service_ipv4_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('1') | ansible.utils.ipaddr('address') }}"
-  - "{{ kubernetes_cluster_service_ipv6_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('1') | ansible.utils.ipaddr('address') }}"
+microk8s_extra_sans: >-
+  {{ wsl_host_primary_all_address + 
+     [kubernetes_cluster_service_ipv4_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('1') | ansible.utils.ipaddr('address')] + 
+     [kubernetes_cluster_service_ipv6_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('1') | ansible.utils.ipaddr('address')] }}
 
-microk8s_host_access_ip: "{{ wsl_host_ipv4_ip }}"
+microk8s_host_access_ip: "{{ wsl_host_primary_ipv4_address }}"
 
 microk8s_metallb_ip_range: "{{ kubernetes_external_network_ipv4_cidr }}"
 
@@ -194,7 +307,7 @@ microk8s_cluster_domain: "cluster.local"
 
 microk8s_cluster_dns: "{{ kubernetes_cluster_service_ipv4_cidr | ansible.utils.ipaddr('network') | ansible.utils.ipmath('4') | ansible.utils.ipaddr('address') }}"
 
-microk8s_kubernetes_nvidia_test_image: "nvidia/cuda:12.3.1-base-ubuntu22.04"
+microk8s_kubernetes_nvidia_test_image: "nvidia/cuda:12.8.0-base-ubuntu22.04"
 
 microk8s_kubernetes_nvidia_test_yml: "{{ download_path }}/kubernetes-nvidia-test.yml"
 

@@ -1,9 +1,11 @@
 # code: language=ansible
 ---
-# - name: Cilium
-#   ansible.builtin.include_tasks: cilium.yml
-# - name: Hostpath Provisioner
-#   ansible.builtin.include_tasks: hostpath-provisioner.yml
+- name: Get host information
+  ansible.builtin.include_tasks: host.yml
+- name: Cilium
+  ansible.builtin.include_tasks: cilium.yml
+- name: Hostpath Provisioner
+  ansible.builtin.include_tasks: hostpath-provisioner.yml
 - name: Core DNS
   ansible.builtin.include_tasks: coredns.yml
 # - name: K8S Gateway
@@ -16,14 +18,14 @@
   ansible.builtin.include_tasks: cert-manager.yml
 - name: Trust Manager
   ansible.builtin.include_tasks: trust-manager.yml
-# - name: External-Secrets
-#   ansible.builtin.include_tasks: external-secrets.yml
+- name: External-Secrets
+  ansible.builtin.include_tasks: external-secrets.yml
 - name: ETCD
   ansible.builtin.include_tasks: etcd.yml
 - name: External Core DNS
   ansible.builtin.include_tasks: external-coredns.yml
-# - name: External DNS
-#   ansible.builtin.include_tasks: external-dns.yml
+- name: External DNS
+  ansible.builtin.include_tasks: external-dns.yml
 - name: Traefik
   ansible.builtin.include_tasks: traefik.yml
 # - name: ApiSix

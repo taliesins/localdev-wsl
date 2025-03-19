@@ -1,0 +1,9 @@
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: default
+spec:
+  allowFirstLastIPs: "No"
+  blocks:
+  - cidr: "{{ cilium_load_balancer_pool_ipv4 }}"
+  - cidr: "{{ cilium_load_balancer_pool_ipv6 }}"

@@ -1,0 +1,103 @@
+- name: Ensure the RKE2 configuration directory exists
+  become: true
+  ansible.builtin.file:
+    path: /etc/rancher/rke2/
+    state: directory
+    mode: '0755'
+
+- name: Create RKE2 configuration file
+  become: true
+  ansible.builtin.template:
+    src: rke2-config-yaml.j2
+    dest: /etc/rancher/rke2/config.yaml
+    owner: 'root'
+    group: 'root'    
+    mode: 'u=rw,g=r,o=r'
+
+- name: Check if RKE2 is already installed
+  become: true
+  ansible.builtin.stat:
+    path: /usr/local/bin/rke2
+  register: rke2_installed
+
+- name: Download and install RKE2 (if not installed)
+  become: true
+  ansible.builtin.shell: |
+    curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION={{ rke2_version }} INSTALL_RKE2_METHOD=tar INSTALL_RKE2_TYPE=server sh -
+  args:
+    executable: /bin/bash
+  when: not rke2_installed.stat.exists
+  register: rke2_install
+  changed_when: rke2_install.rc == 0
+
+- name: Reload systemd daemon if RKE2 was installed
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: yes
+  when: rke2_install.changed
+
+- name: Enable and start RKE2 server
+  become: true
+  ansible.builtin.systemd:
+    name: rke2-server
+    enabled: yes
+    state: started
+
+- name: Ensure etcd binary symlink exists
+  become: true
+  ansible.builtin.file:
+    src: /var/lib/rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/1/fs/usr/local/bin/etcd
+    dest: /var/lib/rancher/rke2/bin/etcd
+    state: link
+    force: yes
+
+- name: Create .kube folder for root
+  become: true
+  changed_when: false
+  ansible.builtin.file:
+    path: "/root/.kube"
+    state: directory
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rwx,g=rwx,o='
+    recurse: true
+
+- name: Create .kube folder for user
+  become: true
+  changed_when: false
+  ansible.builtin.file:
+    path: "/home/{{ user }}/.kube"
+    state: directory
+    owner: '{{ user }}'
+    group: '{{ user }}'
+    mode: 'u=rwx,g=rwx,o='
+    recurse: true
+
+- name: Copy RKE2 kubeconfig to /root/.kube/config
+  become: true
+  ansible.builtin.copy:
+    src: /etc/rancher/rke2/rke2.yaml
+    dest: /root/.kube/config
+    remote_src: yes
+    mode: '0600'
+    owner: root
+    group: root
+
+- name: Copy RKE2 kubeconfig to /home/{{ user }}/.kube/config
+  become: true
+  ansible.builtin.copy:
+    src: /etc/rancher/rke2/rke2.yaml
+    dest: /home/{{ user }}/.kube/config
+    remote_src: yes
+    mode: '0600'
+    owner: '{{ user }}'
+    group: '{{ user }}'
+
+- name: Check if nvidia device
+  ansible.builtin.stat:
+    path:  /mnt/c/Windows/System32/lxss/lib/libcuda.so.1.1
+  register: folder_check
+
+- name: Set variable if folder exists
+  ansible.builtin.set_fact:
+    use_nvidia: "{{ folder_check.stat.exists | default(false) }}"

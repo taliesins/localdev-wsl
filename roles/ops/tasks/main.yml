@@ -1,9 +1,15 @@
 # code: language=ansible
 ---
+- name: Get host information
+  ansible.builtin.include_tasks: host.yml
 - name: Kernel modules and options
   ansible.builtin.include_tasks: kernel.yml
 - name: Bpf
   ansible.builtin.include_tasks: bpf.yml
+- name: System
+  ansible.builtin.include_tasks: system.yml  
+- name: Storage
+  ansible.builtin.include_tasks: storage.yml    
 - name: Cuda Toolkit
   ansible.builtin.include_tasks: cuda-toolkit.yml
 - name: Nvidia Container Toolkit
@@ -18,13 +24,17 @@
   ansible.builtin.include_tasks: cilium-cli.yml
 - name: K3D CLI
   ansible.builtin.include_tasks: k3d-cli.yml
+- name: RKE2
+  ansible.builtin.include_tasks: rke2.yml  
+  when: k8s_distribution == "rke2"
 - name: MicroK8S
   ansible.builtin.include_tasks: microk8s.yml
+  when: k8s_distribution == "microk8s"
 - name: Docker
   ansible.builtin.include_tasks: docker.yml
 - name: NerdCtl
   ansible.builtin.include_tasks: nerdctl.yml
-- name: Test Nvidia GPU
-  ansible.builtin.include_tasks: test-nvidia-gpu.yml 
-- name: MetalLB-Fix
-  ansible.builtin.include_tasks: metallb-fix.yml
+# - name: Test Nvidia GPU
+#   ansible.builtin.include_tasks: test-nvidia-gpu.yml 
+# - name: MetalLB-Fix
+#   ansible.builtin.include_tasks: metallb-fix.yml

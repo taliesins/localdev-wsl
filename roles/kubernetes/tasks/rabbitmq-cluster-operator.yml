@@ -26,7 +26,7 @@
     chart_ref: rabbitmq-cluster-operator/rabbitmq-cluster-operator
     chart_version: "{{ rabbitmq_cluster_operator_helm_version }}"
     create_namespace: true
-    update_repo_cache: rabbitmq_cluster_operator_helm_overrides_result.changed | default(true)
+    update_repo_cache: "{{ rabbitmq_cluster_operator_helm_overrides_result.changed | default(true) }}"
     wait: true
     values_files:
       - "{{ rabbitmq_cluster_operator_helm_overrides }}"

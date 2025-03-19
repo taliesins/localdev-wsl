@@ -49,17 +49,17 @@ function Compare-String {
 
 # Define Variables
 $DownloadPath = "C:\Temp"
-$DockerCliVersion = "26.1.3"
+$DockerCliVersion = "28.0.1"
 $DockerCliFileUrl = "https://download.docker.com/win/static/stable/x86_64/docker-$($DockerCliVersion).zip"
 $DockerCliTempPath = "$($DownloadPath)\docker-$($DockerCliVersion).zip"
 $DockerCliInstallPath = "C:\Program Files\DockerCLI"
 
-$DockerComposeVersion = "2.27.1"
+$DockerComposeVersion = "2.33.1"
 $DockerComposeFileUrl = "https://github.com/docker/compose/releases/download/v$($DockerComposeVersion)/docker-compose-windows-x86_64.exe"
 $DockerComposeTempPath = "$($DownloadPath)\docker-compose-windows-x86_64.exe"
 $DockerComposeInstallPath = "C:\Program Files\DockerCLI"    
 
-$DockerBuildXVersion = "0.14.1"
+$DockerBuildXVersion = "0.21.2"
 $DockerBuildXFileUrl = "https://github.com/docker/buildx/releases/download/v$($DockerBuildXVersion)/buildx-v$($DockerBuildXVersion).windows-amd64.exe"
 $DockerBuildXTempPath = "$($DownloadPath)\buildx-v$($DockerBuildXVersion).windows-amd64.exe"
 $DockerBuildXInstallPath = "$($env:USERPROFILE)\.docker\cli-plugins"
@@ -109,14 +109,14 @@ if ($currentDockerContext) {
 
     if ($dockerContextEndpoint -ne $currentDockerContextEndpoint) {
         Write-Output "Updating Docker context 'wsl' with endpoint $dockerContextEndpoint"
-        docker context create wsl --docker "host=tcp://$($wslIp):2375" -Force
-        docker context use wsl
+        docker context update wsl --docker "host=$dockerContextEndpoint"
     } else {
         Write-Output "Docker Context is already 'wsl'"
     }
+    docker context use wsl
 } else {
     Write-Output "Creating Docker context 'wsl' with endpoint $dockerContextEndpoint"
-    docker context create wsl --docker "host=tcp://$($wslIp):2375"
+    docker context create wsl --docker "host=$dockerContextEndpoint"
     docker context use wsl
 }
 
@@ -154,193 +154,193 @@ if (-not (Test-Path (Join-Path $DockerBuildXInstallPath 'buildx.exe'))) {
     Write-Output "Docker BuildX is already installed"
 }
 
-# Ensure Unbound is installed
-if (-not (Test-Path (Join-Path $UnboundInstallPath 'unbound.exe'))) {
-    # Download Unbound
-    Download-File -Uri $UnboundFileUrl -OutputPath $UnboundTempPath
+# # Ensure Unbound is installed
+# if (-not (Test-Path (Join-Path $UnboundInstallPath 'unbound.exe'))) {
+#     # Download Unbound
+#     Download-File -Uri $UnboundFileUrl -OutputPath $UnboundTempPath
 
-    # Create Unbound Install Directory
-    if (-not (Test-Path $UnboundInstallPath)) {
-        New-Item -Path $UnboundInstallPath -ItemType Directory
-    }
+#     # Create Unbound Install Directory
+#     if (-not (Test-Path $UnboundInstallPath)) {
+#         New-Item -Path $UnboundInstallPath -ItemType Directory
+#     }
 
-    # Extract Unbound
-    Write-Output "Extracting Unbound to $UnboundInstallPath"
-    Expand-Archive -Path $UnboundTempPath -DestinationPath $UnboundInstallPath -Force
-} else {
-    Write-Output "Unbound is already installed"
-}
+#     # Extract Unbound
+#     Write-Output "Extracting Unbound to $UnboundInstallPath"
+#     Expand-Archive -Path $UnboundTempPath -DestinationPath $UnboundInstallPath -Force
+# } else {
+#     Write-Output "Unbound is already installed"
+# }
 
-#Ensure Unbound is configured
-$currentUnboundConfig = ""
-if (Test-Path (Join-Path $UnboundInstallPath 'service.conf')) {
-    $currentUnboundConfig = Get-Content -Path "$(Join-Path $UnboundInstallPath 'service.conf')" -Raw
-} 
+# #Ensure Unbound is configured
+# $currentUnboundConfig = ""
+# if (Test-Path (Join-Path $UnboundInstallPath 'service.conf')) {
+#     $currentUnboundConfig = Get-Content -Path "$(Join-Path $UnboundInstallPath 'service.conf')" -Raw
+# } 
 
-# Get the current DNS server addresses for all network interfaces
-$dnsServers = Get-DnsClientServerAddress
+# # Get the current DNS server addresses for all network interfaces
+# $dnsServers = Get-DnsClientServerAddress
 
-# Get the primary network adapter (commonly the first one in the list)
-$primaryAdapter = $dnsServers | Sort-Object InterfaceAlias | Select-Object -First 1
-$primaryDnsServer = "8.8.8.8"
+# # Get the primary network adapter (commonly the first one in the list)
+# $primaryAdapter = $dnsServers | Sort-Object InterfaceAlias | Select-Object -First 1
+# $primaryDnsServer = "8.8.8.8"
 
-# Output the DNS server addresses for the primary adapter
-if ($primaryAdapter) {
-    $primaryDnsServer = $primaryAdapter.ServerAddresses | Select-Object -First 1
-} else {
-    Write-Output "No network adapters found."
-}
+# # Output the DNS server addresses for the primary adapter
+# if ($primaryAdapter) {
+#     $primaryDnsServer = $primaryAdapter.ServerAddresses | Select-Object -First 1
+# } else {
+#     Write-Output "No network adapters found."
+# }
 
-$ingressServer = "10.152.255.3"
+# $ingressServer = "10.152.255.3"
 
-$privateDomains = @(
-    "local"
-)
+# $privateDomains = @(
+#     "local"
+# )
 
-$insecureDomains = @(
-    "local"
-)
+# $insecureDomains = @(
+#     "local"
+# )
 
-$wildcardForwarders = @(
-    @{DomainName="k8s.lan.talifun.com.";Ipv4Addresses=@($ingressServer);},
-    @{DomainName="local.";Ipv4Addresses=@($ingressServer);}
-)
+# $wildcardForwarders = @(
+#     @{DomainName="k8s.lan.talifun.com.";Ipv4Addresses=@($ingressServer);},
+#     @{DomainName="local.";Ipv4Addresses=@($ingressServer);}
+# )
 
-$dnsForwarders = @(
-    @{DomainName=".";DnsServers=@("$($primaryDnsServer)@53");}
-)
+# $dnsForwarders = @(
+#     @{DomainName=".";DnsServers=@("$($primaryDnsServer)@53");}
+# )
 
-$unboundConfig = @"
-# Unbound configuration file on windows.
-# See example.conf for more settings and syntax
-server:
-	#interface: 0.0.0.0@853
-	#interface: ::0@853
+# $unboundConfig = @"
+# # Unbound configuration file on windows.
+# # See example.conf for more settings and syntax
+# server:
+# 	#interface: 0.0.0.0@853
+# 	#interface: ::0@853
 
-    interface: 127.0.0.1@53
-	interface: ::1@53
+#     interface: 127.0.0.1@53
+# 	interface: ::1@53
 
-	access-control: 0.0.0.0/0 allow
-	access-control: ::0/0 allow
+# 	access-control: 0.0.0.0/0 allow
+# 	access-control: ::0/0 allow
 
-	# verbosity level 0-4 of logging
-	verbosity: 0
+# 	# verbosity level 0-4 of logging
+# 	verbosity: 0
 
-	# On windows you may want to make all the paths relative to the
-	# directory that has the executable in it (unbound.exe).  Use this.
-	#directory: "%EXECUTABLE%"
+# 	# On windows you may want to make all the paths relative to the
+# 	# directory that has the executable in it (unbound.exe).  Use this.
+# 	#directory: "%EXECUTABLE%"
 
-	# if you want to log to a file use
-	logfile: "C:\Program Files\Unbound\unbound.log"
-	log-queries: yes
-	log-replies: yes
-	log-local-actions: yes
-	log-servfail: yes
+# 	# if you want to log to a file use
+# 	logfile: "C:\Program Files\Unbound\unbound.log"
+# 	log-queries: yes
+# 	log-replies: yes
+# 	log-local-actions: yes
+# 	log-servfail: yes
 
-	# or use "unbound.log" and the directory clause above to put it in
-	# the directory where the executable is.
+# 	# or use "unbound.log" and the directory clause above to put it in
+# 	# the directory where the executable is.
 
-	# on Windows, this setting makes reports go into the Application log
-	# found in ControlPanels - System tasks - Logs 
-	#use-syslog: yes
+# 	# on Windows, this setting makes reports go into the Application log
+# 	# found in ControlPanels - System tasks - Logs 
+# 	#use-syslog: yes
 
-	# on Windows, this setting adds the certificates from the Windows
-	# Cert Store.  For when you want to use forwarders with TLS.
-	tls-win-cert: yes
+# 	# on Windows, this setting adds the certificates from the Windows
+# 	# Cert Store.  For when you want to use forwarders with TLS.
+# 	tls-win-cert: yes
 
-	#aggressive-nsec: no
+# 	#aggressive-nsec: no
 	
-    # DNSSEC doesn't work with private TLDs so we need to mark them as insecure
-	private-address: 10.0.0.0/8
-	private-address: 172.16.0.0/12
-	private-address: 192.168.0.0/16
-	private-address: 100.64.0.0/10
-    $(
-        foreach ($privateDomain in $privateDomains) {
-@"
+#     # DNSSEC doesn't work with private TLDs so we need to mark them as insecure
+# 	private-address: 10.0.0.0/8
+# 	private-address: 172.16.0.0/12
+# 	private-address: 192.168.0.0/16
+# 	private-address: 100.64.0.0/10
+#     $(
+#         foreach ($privateDomain in $privateDomains) {
+# @"
 
-    private-domain: "$($privateDomain)"
-"@
-        }
-)      
-$(
-        foreach ($insecureDomain in $insecureDomains) {
-@"
+#     private-domain: "$($privateDomain)"
+# "@
+#         }
+# )      
+# $(
+#         foreach ($insecureDomain in $insecureDomains) {
+# @"
 
-    domain-insecure: "$($insecureDomain)"
-"@
-        }
-)    
+#     domain-insecure: "$($insecureDomain)"
+# "@
+#         }
+# )    
 
-# remote-control:
-	# If you want to use unbound-control.exe from the command line, use
-	#control-enable: yes
-	#control-interface: 127.0.0.1
-	#control-use-cert: no
+# # remote-control:
+# 	# If you want to use unbound-control.exe from the command line, use
+# 	#control-enable: yes
+# 	#control-interface: 127.0.0.1
+# 	#control-use-cert: no
 
-server: 
-	auto-trust-anchor-file: "C:\Program Files\Unbound\root.key"
+# server: 
+# 	auto-trust-anchor-file: "C:\Program Files\Unbound\root.key"
 
-$(
-    foreach ($wildcardForwarder in $wildcardForwarders) {
-@"
+# $(
+#     foreach ($wildcardForwarder in $wildcardForwarders) {
+# @"
 
-local-zone: "$($wildcardForwarder.DomainName)" redirect
-$(
-        foreach ($Ipv4Address in $wildcardForwarder.Ipv4Addresses) {
-@"
+# local-zone: "$($wildcardForwarder.DomainName)" redirect
+# $(
+#         foreach ($Ipv4Address in $wildcardForwarder.Ipv4Addresses) {
+# @"
 
-local-data: "$($wildcardForwarder.DomainName) IN A $($Ipv4Address)"
-"@
-        }
-)
+# local-data: "$($wildcardForwarder.DomainName) IN A $($Ipv4Address)"
+# "@
+#         }
+# )
 
-"@
-        }
-)
+# "@
+#         }
+# )
 
-$(
-    foreach ($dnsForwarder in $dnsForwarders) {
-@"
+# $(
+#     foreach ($dnsForwarder in $dnsForwarders) {
+# @"
 
-forward-zone:
-    name: "$($dnsForwarder.DomainName)"
-$(
-        foreach ($dnsServer in $dnsForwarder.DnsServers) {
-@"
+# forward-zone:
+#     name: "$($dnsForwarder.DomainName)"
+# $(
+#         foreach ($dnsServer in $dnsForwarder.DnsServers) {
+# @"
 
-    forward-addr: $($dnsServer)
-"@
-        }
-)
+#     forward-addr: $($dnsServer)
+# "@
+#         }
+# )
 
-"@
-    }
-)
+# "@
+#     }
+# )
 
-"@
+# "@
 
-$unboundConfig = ($unboundConfig -replace "`r`n", "`n").Trim()
-$currentUnboundConfig = ($currentUnboundConfig -replace "`r`n", "`n").Trim()
+# $unboundConfig = ($unboundConfig -replace "`r`n", "`n").Trim()
+# $currentUnboundConfig = ($currentUnboundConfig -replace "`r`n", "`n").Trim()
 
-if ($currentUnboundConfig -eq $unboundConfig) {
-    Write-Output "Unbound is already configured"
-} else {
-    [System.IO.File]::WriteAllText((Join-Path $UnboundInstallPath 'service.conf'), $unboundConfig, [System.Text.Encoding]::ASCII)
+# if ($currentUnboundConfig -eq $unboundConfig) {
+#     Write-Output "Unbound is already configured"
+# } else {
+#     [System.IO.File]::WriteAllText((Join-Path $UnboundInstallPath 'service.conf'), $unboundConfig, [System.Text.Encoding]::ASCII)
     
-    $serviceName = "Unbound"
-    $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+#     $serviceName = "Unbound"
+#     $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
 
-    if ($null -ne $service) {
-        Write-Output "Service '$serviceName' exists."
-        Restart-Service unbound
-    } else {
-        & "$(Join-Path $UnboundInstallPath 'unbound-service-install.exe')"
-        Write-Output "Service '$serviceName' does not exist."
-        Start-Service unbound
-    }
+#     if ($null -ne $service) {
+#         Write-Output "Service '$serviceName' exists."
+#         Restart-Service unbound
+#     } else {
+#         & "$(Join-Path $UnboundInstallPath 'unbound-service-install.exe')"
+#         Write-Output "Service '$serviceName' does not exist."
+#         Start-Service unbound
+#     }
     
-    Write-Output "Unbound configured"
-}
+#     Write-Output "Unbound configured"
+# }
 
 Write-Output "Installation completed successfully!"
