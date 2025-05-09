@@ -21,16 +21,29 @@ copy_solution () {
 setup_overrides () {
   localDevDirectory=${1}
   localDevOverrideDirectory=${2}
+  natNetwork=${3}
+  natIpAddress=${4}
+  echo "natNetwork: $natNetwork"
+  echo "natIpAddress: $natIpAddress"
 
   if [ -d "$localDevOverrideDirectory" ]; then
     cd "$localDevOverrideDirectory"
+    echo "Directory already exists, skipping copy."
+    echo "Current directory:"
     pwd
   else
+    echo "Creating override directory: $localDevOverrideDirectory/vars"
     mkdir -p "$localDevOverrideDirectory/vars"
     cd "$localDevOverrideDirectory"
+    echo "Copying files to override directory..."
+    echo "Current directory:"
     pwd
 
+    echo "Copying files from $localDevDirectory to $localDevOverrideDirectory"
     cp -rf -R -u -p "$localDevDirectory/vars/" "$localDevOverrideDirectory/"
+    echo "sed -i s/10.152.0.0\/16/${natNetwork//[.\/\\*^\$\[]/\\&}/g $localDevOverrideDirectory/vars/network.yml"
+    sed -i "s/10.152.0.0\/16/${natNetwork//[.\/\\*^\$\[]/\\&}/g" "$localDevOverrideDirectory/vars/network.yml"
+    sed -i "s/10.152.0.5/${natIpAddress//[.\/\\*^\$\[]/\\&}/g" "$localDevOverrideDirectory/vars/network.yml"
 
     export LOCALDEV_OVERRIDE_PATH=$localDevOverrideDirectory
 
@@ -87,12 +100,26 @@ setup_ssh() {
 
 ROOT_DIRECTORY=$(realpath $( dirname $(dirname ${BASH_SOURCE[0]:-$0} ) ) )
 WINDOWS_SSH_PATH=${1-""}
+NAT_NETWORK=${2-""}
+NAT_IP_ADDRESS=${3-""}
 
 LOCAL_DEV_DIRECTORY=$HOME/localdev-wsl
+if [ -z "$WINDOWS_SSH_PATH" ]; then
+  echo "Please provide the path to your SSH key on Windows."
+  exit 1
+fi
 LOCAL_DEV_OVERRIDE_DIRECTORY=$HOME/override-localdev-wsl
 
+echo "ROOT_DIRECTORY: $ROOT_DIRECTORY"
+echo "WINDOWS_SSH_PATH: $WINDOWS_SSH_PATH"
+echo "NAT_NETWORK: $NAT_NETWORK"
+echo "NAT_IP_ADDRESS: $NAT_IP_ADDRESS"
+echo "LOCAL_DEV_DIRECTORY: $LOCAL_DEV_DIRECTORY"
+echo "LOCAL_DEV_OVERRIDE_DIRECTORY: $LOCAL_DEV_OVERRIDE_DIRECTORY"
+echo "1. copy solution from $ROOT_DIRECTORY to $LOCAL_DEV_DIRECTORY"
 copy_solution "$ROOT_DIRECTORY" "$LOCAL_DEV_DIRECTORY"
-setup_overrides "$LOCAL_DEV_DIRECTORY" "$LOCAL_DEV_OVERRIDE_DIRECTORY"
+echo "2. copy override solution from $LOCAL_DEV_DIRECTORY to $LOCAL_DEV_OVERRIDE_DIRECTORY"
+setup_overrides "$LOCAL_DEV_DIRECTORY" "$LOCAL_DEV_OVERRIDE_DIRECTORY" "$NAT_NETWORK" "$NAT_IP_ADDRESS"
 
 cp -rf -R -u -p "$(/usr/bin/wslpath -a -u "$WINDOWS_SSH_PATH")" "$HOME/"
 setup_ssh
@@ -103,4 +130,5 @@ if [ ! -n "$(grep "^github.com " ~/.ssh/known_hosts)" ]; then
 fi
 
 cd $HOME/localdev-wsl
+echo "Installing Ansible requirements with ansible-galaxy install -r requirements.yml"
 ansible-galaxy install -r requirements.yml

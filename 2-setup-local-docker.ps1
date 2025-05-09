@@ -1,5 +1,7 @@
 $ErrorActionPreference = "Stop"
 
+
+#region Helper Functions
 # Function to download a file if it does not exist
 function Download-File {
     param (
@@ -30,6 +32,7 @@ function Add-ToPath {
     }
 }
 
+# Function to compare two strings and return the index of the first difference
 function Compare-String {
     param(
       [String] $string1,
@@ -46,24 +49,29 @@ function Compare-String {
     }
     return $string1.Length
   }
+#endregion Helper Functions
 
-# Define Variables
+#region Variables
+write-output "******************************"
 $DownloadPath = "C:\Temp"
-$DockerCliVersion = "28.1.1"
+$DockerCliVersion = "28.0.1"
 $DockerCliFileUrl = "https://download.docker.com/win/static/stable/x86_64/docker-$($DockerCliVersion).zip"
 $DockerCliTempPath = "$($DownloadPath)\docker-$($DockerCliVersion).zip"
 $DockerCliInstallPath = "C:\Program Files\DockerCLI"
 
-$DockerComposeVersion = "2.36.0"
+$DockerComposeVersion = "2.33.1"
 $DockerComposeFileUrl = "https://github.com/docker/compose/releases/download/v$($DockerComposeVersion)/docker-compose-windows-x86_64.exe"
 $DockerComposeTempPath = "$($DownloadPath)\docker-compose-windows-x86_64.exe"
 $DockerComposeInstallPath = "C:\Program Files\DockerCLI"    
 
-$DockerBuildXVersion = "0.23.0"
+$DockerBuildXVersion = "0.21.2"
 $DockerBuildXFileUrl = "https://github.com/docker/buildx/releases/download/v$($DockerBuildXVersion)/buildx-v$($DockerBuildXVersion).windows-amd64.exe"
 $DockerBuildXTempPath = "$($DownloadPath)\buildx-v$($DockerBuildXVersion).windows-amd64.exe"
 $DockerBuildXInstallPath = "$($env:USERPROFILE)\.docker\cli-plugins"
+#endregion Variables
 
+#region Validation
+write-output "******************************"
 # Create Download Path if it does not exist
 $dockerPath=(Join-Path $DockerCliInstallPath 'docker.exe')
 if (-not (Test-Path $DownloadPath)) {
@@ -103,18 +111,26 @@ if ($currentDockerCliVersion -ne $DockerCliVersion) {
 } else {
     Write-Output "Docker CLI is already installed"
 }
+#endregion Validation
 
 # Set Docker CLI Context
+write-output "******************************"
+write-output "Setting Docker CLI context to WSL"
 $ipAddresses = wsl bash -c "hostname -I"
+Write-Output "IP Addresses: $ipAddresses"
 $wslIp = $ipAddresses.Trim() -split "\s+" | Select-Object -First 1
 $dockerContextEndpoint="tcp://$($wslIp):2375"
+Write-Output "Docker context endpoint: $dockerContextEndpoint"
+
 
 $dockerContexts = docker context ls --format '{{.Name}}\t{{.Current}}\t{{.DockerEndpoint}}'
+Write-Output "Docker contexts: $dockerContexts"
 $currentDockerContext = $dockerContexts | Where-Object { $_ -match "true" }
 
 if ($currentDockerContext) {
     $currentDockerContextParts = $currentDockerContext -split "\t"
     $currentDockerContextEndpoint = $currentDockerContextParts[2]
+    Write-Output "Current Docker context: $($currentDockerContextParts)"
 
     if ($dockerContextEndpoint -ne $currentDockerContextEndpoint) {
         Write-Output "Updating Docker context 'wsl' with endpoint $dockerContextEndpoint"
