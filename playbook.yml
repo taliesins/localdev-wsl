@@ -13,7 +13,7 @@
     # - {role: 'shell', tags: 'shell'}
     # - {role: 'workspace', tags: 'workspace'}
     - {role: 'ops', tags: 'ops'}
-    #- {role: 'kubernetes', tags: 'kubernetes'}
+    - {role: 'kubernetes', tags: 'kubernetes'}
 
   ### Change to your user! ###
   user: "{{ default_user }}"
