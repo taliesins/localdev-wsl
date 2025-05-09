@@ -49,22 +49,22 @@ function Compare-String {
 
 # Define Variables
 $DownloadPath = "C:\Temp"
-$DockerCliVersion = "28.0.1"
+$DockerCliVersion = "28.1.1"
 $DockerCliFileUrl = "https://download.docker.com/win/static/stable/x86_64/docker-$($DockerCliVersion).zip"
 $DockerCliTempPath = "$($DownloadPath)\docker-$($DockerCliVersion).zip"
 $DockerCliInstallPath = "C:\Program Files\DockerCLI"
 
-$DockerComposeVersion = "2.33.1"
+$DockerComposeVersion = "2.36.0"
 $DockerComposeFileUrl = "https://github.com/docker/compose/releases/download/v$($DockerComposeVersion)/docker-compose-windows-x86_64.exe"
 $DockerComposeTempPath = "$($DownloadPath)\docker-compose-windows-x86_64.exe"
 $DockerComposeInstallPath = "C:\Program Files\DockerCLI"    
 
-$DockerBuildXVersion = "0.21.2"
+$DockerBuildXVersion = "0.23.0"
 $DockerBuildXFileUrl = "https://github.com/docker/buildx/releases/download/v$($DockerBuildXVersion)/buildx-v$($DockerBuildXVersion).windows-amd64.exe"
 $DockerBuildXTempPath = "$($DownloadPath)\buildx-v$($DockerBuildXVersion).windows-amd64.exe"
 $DockerBuildXInstallPath = "$($env:USERPROFILE)\.docker\cli-plugins"
 
-$UnboundVersion = "1.20.0"
+$UnboundVersion = "1.23.0"
 $UnboundFileUrl = "https://nlnetlabs.nl/downloads/unbound/unbound-$($UnboundVersion).zip"
 $UnboundTempPath = "$($DownloadPath)\unbound-$($UnboundVersion).zip"
 $UnboundInstallPath = "C:\Program Files\Unbound"    

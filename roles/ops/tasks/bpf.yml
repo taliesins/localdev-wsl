@@ -9,4 +9,3 @@
     opts: rw,nosuid,nodev,noexec,relatime,mode=700
     boot: true
     state: mounted
-

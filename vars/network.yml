@@ -3,6 +3,8 @@
 download_path: "{{ x_ansible_download_dir | default(ansible_env.HOME + '/.ansible/tmp/downloads') }}"
 cluster_name: "k8s"
 tld: "lan.talifun.com"
+kubernetes_ipv4_support: "" # leave this empty to auto-detect
+kubernetes_ipv6_support: "" # leave this empty to auto-detect
 kubernetes_external_network_ipv4_cidr: "10.1.0.193/26" # Must be a sub cidr block of wsl_host_primary_ipv4_network_cidr and not overlap wsl_host_primary_ipv4_address
 kubernetes_external_network_ipv6_cidr: "fd69:fd69:fd69:100::/64" # Must be a sub cidr block of wsl_host_primary_ipv6_network_cidr and not overlap wsl_host_primary_ipv6_address
 kubernetes_cluster_network_ipv4_cidr: "10.154.0.0/16"

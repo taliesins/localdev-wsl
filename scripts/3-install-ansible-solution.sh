@@ -21,8 +21,6 @@ copy_solution () {
 setup_overrides () {
   localDevDirectory=${1}
   localDevOverrideDirectory=${2}
-  natNetwork=${3}
-  natIpAddress=${4}
 
   if [ -d "$localDevOverrideDirectory" ]; then
     cd "$localDevOverrideDirectory"
@@ -33,9 +31,6 @@ setup_overrides () {
     pwd
 
     cp -rf -R -u -p "$localDevDirectory/vars/" "$localDevOverrideDirectory/"
-
-    sed -i "s/10.152.0.0\/16/${natNetwork//[.\/\\*^\$\[]/\\&}/g" "$localDevOverrideDirectory/vars/network.yml"
-    sed -i "s/10.152.0.5/${natIpAddress//[.\/\\*^\$\[]/\\&}/g" "$localDevOverrideDirectory/vars/network.yml"
 
     export LOCALDEV_OVERRIDE_PATH=$localDevOverrideDirectory
 
@@ -92,14 +87,12 @@ setup_ssh() {
 
 ROOT_DIRECTORY=$(realpath $( dirname $(dirname ${BASH_SOURCE[0]:-$0} ) ) )
 WINDOWS_SSH_PATH=${1-""}
-NAT_NETWORK=${2-""}
-NAT_IP_ADDRESS=${3-""}
 
 LOCAL_DEV_DIRECTORY=$HOME/localdev-wsl
 LOCAL_DEV_OVERRIDE_DIRECTORY=$HOME/override-localdev-wsl
 
 copy_solution "$ROOT_DIRECTORY" "$LOCAL_DEV_DIRECTORY"
-setup_overrides "$LOCAL_DEV_DIRECTORY" "$LOCAL_DEV_OVERRIDE_DIRECTORY" "$NAT_NETWORK" "$NAT_IP_ADDRESS"
+setup_overrides "$LOCAL_DEV_DIRECTORY" "$LOCAL_DEV_OVERRIDE_DIRECTORY"
 
 cp -rf -R -u -p "$(/usr/bin/wslpath -a -u "$WINDOWS_SSH_PATH")" "$HOME/"
 setup_ssh
